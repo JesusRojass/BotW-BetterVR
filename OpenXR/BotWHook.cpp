@@ -31,7 +31,7 @@ float reverseFloatEndianess(float inFloat) {
 #define APP_CALC_CONVERT 1          // Used as an intermediary for converting the library-dependent code into native graphic pack code.
 #define APP_CALC_LIBRARY 2          // Used for easily testing code using libraries.
 
-#define CALC_MODE APP_CALC_CONVERT
+#define CALC_MODE GFX_PACK_PASSTHROUGH
 
 
 struct inputDataBuffer {
@@ -188,9 +188,9 @@ void SetBotWPositions(XrView leftScreen, XrView rightScreen) {
             inputCamera.headsetQuaternion.y = middleScreen.orientation.y;
             inputCamera.headsetQuaternion.z = middleScreen.orientation.z;
             inputCamera.headsetQuaternion.w = middleScreen.orientation.w;
-            inputCamera.headsetPosition.x = middleScreen.orientation.x;
-            inputCamera.headsetPosition.y = middleScreen.orientation.y;
-            inputCamera.headsetPosition.z = middleScreen.orientation.z;
+            inputCamera.headsetPosition.x = middleScreen.position.x;
+            inputCamera.headsetPosition.y = middleScreen.position.y;
+            inputCamera.headsetPosition.z = middleScreen.position.z;
         }
 
         reverseInputBufferEndianess(&inputCamera);

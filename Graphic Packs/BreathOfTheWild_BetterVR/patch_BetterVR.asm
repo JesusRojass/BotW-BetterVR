@@ -58,10 +58,10 @@ newRotZ:
 ; Additional settings you can change
 FOVSetting:
 .float $FOV
-DistanceSetting:
-.float 1.0
-RotationSetting:
-.float 1.0
+HeadPositionSensitivitySetting:
+.float 2.0
+HeightPositionOffsetSetting:
+.float 0.1
 
 
 CAM_OFFSET_POS = 0x5C0
