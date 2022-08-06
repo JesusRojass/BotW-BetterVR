@@ -24,42 +24,60 @@ PFN_vkCreateInstance top_origCreateInstance = nullptr;
 PFN_vkCreateDevice top_origCreateDevice = nullptr;
 
 VK_LAYER_EXPORT VkResult VKAPI_CALL Layer_NESTED_TOP_CreateDevice(VkPhysicalDevice gpu, const VkDeviceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDevice* pDevice) {
+	VkResult result = top_origCreateDevice(gpu, pCreateInfo, pAllocator, pDevice);
+	logPrint(std::format("Created new NESTED device: {}", (void*)*pDevice));
+	return result;
 }
 
 VK_LAYER_EXPORT PFN_vkVoidFunction VKAPI_CALL Layer_NESTED_TOP_GetDeviceProcAddr(VkDevice device, const char* pName) {
 	PFN_vkGetDeviceProcAddr top_DeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(GetProcAddress(reinterpret_cast<HMODULE>(vulkanModule), "vkGetDeviceProcAddr"));
 	
-	if (strcmp(pName, "vkCreateDevice") == 0)
+	if (strcmp(pName, "vkCreateDevice") == 0) {
+		top_origCreateDevice = (PFN_vkCreateDevice)top_DeviceProcAddr(device, pName);
 		return (PFN_vkVoidFunction)Layer_NESTED_TOP_CreateDevice;
+	}
 
 	// Required to self-intercept for compatibility
 	if (strcmp(pName, "vkGetDeviceProcAddr") == 0)
 		return (PFN_vkVoidFunction)Layer_NESTED_TOP_GetDeviceProcAddr;
-
-	top_DeviceProcAddr(device, pName);
+	
+	PFN_vkVoidFunction funcRet = nullptr; // saved_GetInstanceProcAddr(device, pName);
+	if (funcRet == nullptr) {
+		funcRet = top_DeviceProcAddr(device, pName);
+		logPrint(std::format("Couldn't resolve using GetDeviceProcAddr, used top-level hook: {} {} {}", pName, (void*)device, (void*)funcRet));
+	}
+	else {
+		logPrint(std::format("Could resolve using GetDeviceProcAddr: {} {} {}", pName, (void*)device, (void*)funcRet));
+	}
+	return funcRet;
 }
 
 VK_LAYER_EXPORT VkResult VKAPI_CALL Layer_NESTED_TOP_CreateInstance(const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkInstance* pInstance) {
+	VkResult result = top_origCreateInstance(pCreateInfo, pAllocator, pInstance);
+	logPrint(std::format("Created new NESTED instance: {}", (void*)*pInstance));
+	return result;
 }
 
 VK_LAYER_EXPORT PFN_vkVoidFunction VKAPI_CALL Layer_NESTED_GetInstanceProcAddr(VkInstance instance, const char* pName) {	
 	PFN_vkGetInstanceProcAddr top_InstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(GetProcAddress(reinterpret_cast<HMODULE>(vulkanModule), "vkGetInstanceProcAddr"));
 	
 	if (strcmp(pName, "vkCreateInstance") == 0) {
-		top_origCreateInstance = top_InstanceProcAddr();
+		top_origCreateInstance = (PFN_vkCreateInstance)top_InstanceProcAddr(instance, pName);
 		return (PFN_vkVoidFunction)Layer_NESTED_TOP_CreateInstance;
 	}
 
 	// Required to self-intercept for compatibility
-	if (strcmp(pName, "vkGetDeviceProcAddr") == 0)
+	if (strcmp(pName, "vkGetDeviceProcAddr") == 0) {
+		top_origGetDeviceProcAddr = (PFN_vkGetDeviceProcAddr)top_InstanceProcAddr(instance, pName);
 		return (PFN_vkVoidFunction)Layer_NESTED_TOP_GetDeviceProcAddr;
+	}
 	if (strcmp(pName, "vkGetInstanceProcAddr") == 0)
 		return (PFN_vkVoidFunction)Layer_NESTED_GetInstanceProcAddr;
 
 	PFN_vkVoidFunction funcRet = saved_GetInstanceProcAddr(instance, pName);
 	if (funcRet == nullptr) {
 		funcRet = top_InstanceProcAddr(instance, pName);
-		logPrint(std::format("Couldn't resolve using GetInstanceProcAddr, used top-level hook: {} {} {}", pName, (void*)sharedInstance, (void*)funcRet));
+		logPrint(std::format("Couldn't resolve using GetInstanceProcAddr, used top-level hook: {} {} {}", pName, (void*)instance, (void*)funcRet));
 	}
 	else {
 		logPrint(std::format("Could resolve using GetInstanceProcAddr: {} {} {}", pName, (void*)instance, (void*)funcRet));
@@ -76,7 +94,7 @@ VK_LAYER_EXPORT VkResult VKAPI_CALL Layer_CreateInstance(const VkInstanceCreateI
 		return VK_ERROR_INITIALIZATION_FAILED;;
 	}
 	
-	//SetEnvironmentVariableA("VK_INSTANCE_LAYERS", NULL);
+	SetEnvironmentVariableA("VK_INSTANCE_LAYERS", NULL);
 
 	vulkanModule = LoadLibraryA("vulkan-1.dll");
 
