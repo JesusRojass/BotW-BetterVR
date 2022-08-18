@@ -256,8 +256,8 @@ XrSession XR_CreateSession(VkInstance vkInstance, VkDevice vkDevice, VkPhysicalD
 	logPrint("Creating the OpenXR session...");
 	
 	XrGraphicsBindingVulkan2KHR xrVulkanBindings = { XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR };
+	xrVulkanBindings.instance = topVkInstance;
 	xrVulkanBindings.device = vkDevice;
-	xrVulkanBindings.instance = vkInstance;
 	xrVulkanBindings.physicalDevice = vkPhysicalDevice;
 	xrVulkanBindings.queueFamilyIndex = 0;
 	xrVulkanBindings.queueIndex = 0;

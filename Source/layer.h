@@ -41,6 +41,11 @@ extern XrInstance xrSharedInstance;
 extern XrSystemId xrSharedSystemId;
 extern XrSession xrSharedSession;
 
+extern std::list<VkInstance> steamInstances;
+extern VkInstance topVkInstance;
+extern std::list<VkDevice> steamDevices;
+extern VkDevice topVkDevice;
+
 // hook functions
 //VK_LAYER_EXPORT VkResult VKAPI_CALL Layer_CreateRenderPass(VkDevice device, const VkRenderPassCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass);
 //VK_LAYER_EXPORT void VKAPI_CALL Layer_CmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents);
@@ -74,6 +79,7 @@ void RND_InitRendering();
 void SteamVRHook_initialize();
 PFN_vkVoidFunction VKAPI_CALL SteamVRHook_GetInstanceProcAddr(VkInstance instance, const char* pName);
 PFN_vkVoidFunction VKAPI_CALL SteamVRHook_GetDeviceProcAddr(VkDevice device, const char* pName);
+PFN_vkVoidFunction VKAPI_CALL SteamVRHook_GetDeviceProcAddrExtra(VkDevice device, const char* pName);
 
 // framebuffer functions
 VK_LAYER_EXPORT VkResult VKAPI_CALL Layer_CreateImage(VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage);

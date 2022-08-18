@@ -41,7 +41,7 @@ XrSwapchain RND_CreateSwapchain(XrSession xrSession, XrViewConfigurationView& vi
 	XrSwapchainCreateInfo swapchainCreateInfo = { XR_TYPE_SWAPCHAIN_CREATE_INFO };
 	swapchainCreateInfo.width = viewConf.recommendedImageRectWidth;
 	swapchainCreateInfo.height = viewConf.recommendedImageRectHeight;
-	swapchainCreateInfo.arraySize = 0;
+	swapchainCreateInfo.arraySize = 1;
 	swapchainCreateInfo.sampleCount = viewConf.recommendedSwapchainSampleCount;
 	swapchainCreateInfo.format = xrSwapchainFormat;
 	swapchainCreateInfo.mipCount = 1;
