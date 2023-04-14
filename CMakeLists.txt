@@ -1,3 +1,5 @@
+set(VCPKG_TARGET_TRIPLET x64-windows-static-md)
+
 cmake_minimum_required(VERSION 3.7.0)
 project(BetterVR_Layer VERSION 0.1.0 LANGUAGES CXX)
 

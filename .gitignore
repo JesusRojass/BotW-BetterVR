@@ -31,6 +31,7 @@
 *.out
 *.app
 
+out/*
 x64/
 
 packages/
@@ -45,4 +46,5 @@ CemuTest/
 
 ReverseEngineering/
 
+CMakeSettings.json
 cmake-build-*/
