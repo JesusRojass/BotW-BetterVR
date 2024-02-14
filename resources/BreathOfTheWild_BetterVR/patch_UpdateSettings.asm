@@ -28,6 +28,15 @@ lis r5, data_settingsOffset@ha
 addi r5, r5, data_settingsOffset@l
 bl import.coreinit.hook_UpdateSettings
 
+; spawn check
+li r3, 0
+bl import.coreinit.hook_CreateNewActor
+cmpwi r3, 1
+bne notSpawnActor
+bl vr_spawnEquipment
+notSpawnActor:
+
+
 lwz r5, 0x8(r1)
 mtlr r5
 lwz r5, 0x4(r1)

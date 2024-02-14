@@ -50,21 +50,26 @@ void CemuHooks::hook_UpdateActorList(PPCInterpreter_t* hCPU) {
     uint32_t actorPtrUnderscore = 0;
     readMemoryBE(actorPtr, &actorPtrUnderscore);
     if (actorPtrUnderscore == 0) {
-        Log::print("Updating actor list [{}/{}] {:08x} - No Name", hCPU->gpr[5], hCPU->gpr[7], hCPU->gpr[6]);
+        //Log::print("Updating actor list [{}/{}] {:08x} - No Name", hCPU->gpr[5], hCPU->gpr[7], hCPU->gpr[6]);
         return;
     }
 
     char* actorName = (char*)s_memoryBaseAddress + actorPtrUnderscore;
 
     if (strcmp(actorName, "FldObj_PushRock_A_M_01") == 0) {
-        Log::print("Updating actor list [{}/{}] {:08x} - {}", hCPU->gpr[5], hCPU->gpr[7], hCPU->gpr[6], actorName);
+        // Log::print("Updating actor list [{}/{}] {:08x} - {}", hCPU->gpr[5], hCPU->gpr[7], hCPU->gpr[6], actorName);
         // float velocityY = 0.0f;
         // readMemoryBE(hCPU->gpr[6] + offsetof(ActorWiiU, velocity.y), &velocityY);
         // velocityY = velocityY * 1.5f;
         // writeMemoryBE(hCPU->gpr[6] + offsetof(ActorWiiU, velocity.y), &velocityY);
         s_actorPtrs.emplace_back(hCPU->gpr[6]);
     }
+
+    Log::print("Updating actor list [{}/{}] {:08x} - {}", hCPU->gpr[5], hCPU->gpr[7], hCPU->gpr[6], actorName);
 }
+
+// ksys::phys::RigidBodyFromShape::create to create a RigidBody from a shape
+// use Actor::getRigidBodyByName
 
 void CemuHooks::updateFrames() {
     for (uint32_t actorPtr : s_actorPtrs) {
@@ -105,6 +110,19 @@ void CemuHooks::updateFrames() {
         writeMemoryBE(actorPtr + offsetof(ActorWiiU, homeMtx), &mtx);
         writeMemoryBE(actorPtr + offsetof(ActorWiiU, mtx), &mtx);
         //Log::print("Updating actor list {:08x} currX={}, currY={}, currZ={} -> newX={}, newY={}, newZ={}", actorPtr, posX, posY, posZ, backupMtx.pos_x, backupMtx.pos_y, backupMtx.pos_z);
+    }
+}
+
+void CemuHooks::hook_CreateNewActor(PPCInterpreter_t* hCPU) {
+    hCPU->instructionPointer = hCPU->sprNew.LR;
+
+    // test if controller is connected
+    if (VRManager::instance().XR->m_input.hands[0].select.currentState == XR_TRUE || VRManager::instance().XR->m_input.hands[1].select.currentState == XR_TRUE) {
+        Log::print("Trying to spawn new thing!");
+        hCPU->gpr[3] = 1;
+    }
+    else {
+        hCPU->gpr[3] = swapEndianness(0);
     }
 }
 

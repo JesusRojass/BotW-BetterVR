@@ -10,7 +10,7 @@ void CemuHooks::hook_UpdateSettings(PPCInterpreter_t* hCPU) {
     // Log::print("Updated settings!");
     hCPU->instructionPointer = hCPU->sprNew.LR;
 
-    updateFrames();
+    //updateFrames();
 
     uint32_t ppc_settingsOffset = hCPU->gpr[5];
     data_VRSettingsIn settings = {};
