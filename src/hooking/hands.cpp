@@ -3,6 +3,9 @@
 
 #include <glm/gtx/quaternion.hpp>
 
+#define PADDED_BYTES(from, up) uint8_t byte_##from##[ ## (up-from+0x04) ## ]
+
+#pragma pack(push, 1)
 struct ActorWiiU {
     uint32_t vtable;
     BEType<uint32_t> baseProcPtr;
@@ -21,14 +24,46 @@ struct ActorWiiU {
     BEType<float> loadDistP10;
     BEVec3 previousPos;
     BEVec3 previousPos2;
-
-    // ActorPhysics *physics is an interesting class, getPhysicsField60
-
-    uint8_t unk_UNKNOWN[0x1C8];
-
-    // todo: insert gap
-    BEType<float> lodDrawDistanceMultiplier; // 0x490
+    PADDED_BYTES(0x2A4, 0x324);
+    BEType<uint32_t> modelBindInfoPtr;
+    PADDED_BYTES(0x32C, 0x32C);
+    BEType<uint32_t> gsysModelPtr;
+    PADDED_BYTES(0x334, 0x334);
+    BEType<float> startModelOpacity;
+    BEType<float> modelOpacity;
+    PADDED_BYTES(0x340, 0x348);
+    struct {
+        BEType<float> minX;
+        BEType<float> minY;
+        BEType<float> minZ;
+        BEType<float> maxX;
+        BEType<float> maxY;
+        BEType<float> maxZ;
+    } aabb;
+    BEType<uint32_t> flags2;
+    BEType<uint32_t> flags2Copy;
+    BEType<uint32_t> flags;
+    BEType<uint32_t> flags3;
+    PADDED_BYTES(0x374, 0x404);
+    BEType<uint32_t> hashId;
+    PADDED_BYTES(0x40C, 0x430);
+    uint8_t unk_434;
+    uint8_t unk_435;
+    uint8_t opacityOrSomethingEnabled;
+    uint8_t unk_437;
+    PADDED_BYTES(0x438, 0x440);
+    BEType<uint32_t> pfloat444;
+    BEType<uint32_t> chemicals;
+    BEType<uint32_t> reactions;
+    PADDED_BYTES(0x450, 0x48C);
+    BEType<float> lodDrawDistanceMultiplier;
+    PADDED_BYTES(0x494, 0x538);
 };
+#pragma pack(pop)
+
+static_assert(sizeof(ActorWiiU) == 0x53C);
+
+
 
 
 static uint32_t stringToHash(const char* str) {
@@ -110,8 +145,47 @@ void CemuHooks::updateFrames() {
                     overlay->m_resetPlot = true;
                 }
                 overlay->m_playerPos = newPlayerPos;
+
+                // set invisibility flag
+                // {
+                //     int32_t flags = 0;
+                //     readMemory(actorData.second + offsetof(ActorWiiU, flags3), &flags);
+                //     flags |= 0x800;
+                //     writeMemory(actorData.second + offsetof(ActorWiiU, flags3), &flags);
+                // }
+                // {
+                //     int32_t flags = 0;
+                //     readMemory(actorData.second + offsetof(ActorWiiU, flags2), &flags);
+                //     flags |= 0x800;
+                //     writeMemory(actorData.second + offsetof(ActorWiiU, flags2), &flags);
+                // }
+                // {
+                //     float lodDrawDistanceMultiplier = 0;
+                //     readMemory(actorData.second + offsetof(ActorWiiU, lodDrawDistanceMultiplier), &lodDrawDistanceMultiplier);
+                //     lodDrawDistanceMultiplier = 0.0f;
+                //     writeMemory(actorData.second + offsetof(ActorWiiU, lodDrawDistanceMultiplier), &lodDrawDistanceMultiplier);
+                // }
+                // {
+                //     float startModelOpacity = 0;
+                //     readMemory(actorData.second + offsetof(ActorWiiU, startModelOpacity), &startModelOpacity);
+                //     startModelOpacity = 0.0f;
+                //     writeMemory(actorData.second + offsetof(ActorWiiU, startModelOpacity), &startModelOpacity);
+                // }
+                {
+                    BEType<float> modelOpacity = 1.0f;
+                    readMemory(actorData.second + offsetof(ActorWiiU, modelOpacity), &modelOpacity);
+                    modelOpacity = 1.0f;
+                    writeMemory(actorData.second + offsetof(ActorWiiU, modelOpacity), &modelOpacity);
+                }
+                {
+                    uint8_t opacityOrSomethingEnabled = 0;
+                    writeMemory(actorData.second + offsetof(ActorWiiU, opacityOrSomethingEnabled), &opacityOrSomethingEnabled);
+                    writeMemory(actorData.second + offsetof(ActorWiiU, opacityOrSomethingEnabled)+1, &opacityOrSomethingEnabled);
+                    writeMemory(actorData.second + offsetof(ActorWiiU, opacityOrSomethingEnabled)-1, &opacityOrSomethingEnabled);
+                    writeMemory(actorData.second + offsetof(ActorWiiU, opacityOrSomethingEnabled)-2, &opacityOrSomethingEnabled);
+                }
             }
-            else if (actorData.first == "GameROMCamera") {
+            else if (actorData.first == "GameRomCamera") {
                 readMemory(actorData.second + offsetof(ActorWiiU, mtx), &playerPos);
                 glm::fvec3 newPlayerPos = playerPos.getPos().getLE();
 
@@ -123,44 +197,56 @@ void CemuHooks::updateFrames() {
             uint32_t actorPtr = actorInfo.second;
             const std::string& actorName = actorInfo.first;
 
-            BEMatrix34 mtx = {};
-            BEMatrix34 homeMtx = {};
-            BEVec3 velocity = {};
-            BEVec3 angularVelocity = {};
+            auto addField = [&]<typename T>(const std::string& name, uint32_t offset) -> void {
+                uint32_t address = actorPtr + offset;
+                overlay->AddOrUpdateEntity(actorId, actorName, name, address, getMemory<T>(address), true);
+            };
 
-            readMemory(actorPtr + offsetof(ActorWiiU, mtx), &mtx);
-            readMemory(actorPtr + offsetof(ActorWiiU, homeMtx), &homeMtx);
-            readMemory(actorPtr + offsetof(ActorWiiU, velocity), &velocity);
-            readMemory(actorPtr + offsetof(ActorWiiU, angularVelocity), &angularVelocity);
-
+            BEMatrix34 mtx = getMemory<BEMatrix34>(actorPtr + offsetof(ActorWiiU, mtx));
+            overlay->AddOrUpdateEntity(actorId, actorName, "mtx", actorPtr + offsetof(ActorWiiU, mtx), mtx);
             if (playerPos.pos_x.getLE() != 0.0f) {
                 overlay->SetPosition(actorId, playerPos.getPos(), mtx.getPos());
             }
-
             overlay->SetRotation(actorId, mtx.getRotLE());
 
-            overlay->AddOrUpdateEntity(actorId, actorName, "mtx", actorPtr + offsetof(ActorWiiU, mtx), mtx);
-            overlay->AddOrUpdateEntity(actorId, actorName, "homeMtx", actorPtr + offsetof(ActorWiiU, homeMtx), homeMtx);
+            BEVec3 aabbMin = getMemory<BEVec3>(actorPtr + offsetof(ActorWiiU, aabb.minX));
+            BEVec3 aabbMax = getMemory<BEVec3>(actorPtr + offsetof(ActorWiiU, aabb.maxX));
+            if (aabbMin.x.getLE() != 0.0f) {
+                overlay->SetAABB(actorId, aabbMin.getLE(), aabbMax.getLE());
+            }
 
-            // uint32_t physicsMtxPtr = 0;
-            // if (readMemoryBE(actorPtr + offsetof(ActorWiiU, physicsMtxPtr), &physicsMtxPtr); physicsMtxPtr != 0) {
-            //     BEMatrix34 physicsMtx = {};
-            //     readMemory(physicsMtxPtr, &physicsMtx);
-            //     overlay->AddOrUpdateEntity(actorId, actorName, "physicsMtx", actorPtr + offsetof(ActorWiiU, physicsMtxPtr), physicsMtx);
-            // }
-            overlay->AddOrUpdateEntity(actorId, actorName, "velocity", actorPtr + offsetof(ActorWiiU, velocity), velocity);
-            overlay->AddOrUpdateEntity(actorId, actorName, "angularVelocity", actorPtr + offsetof(ActorWiiU, angularVelocity), angularVelocity);
-            overlay->AddOrUpdateEntity(actorId, actorName, "scale", actorPtr + offsetof(ActorWiiU, scale), getMemory<BEVec3>(actorPtr + offsetof(ActorWiiU, scale)));
-            // overlay->AddOrUpdateEntity(actorId, actorName, "previousPos", actorPtr + offsetof(ActorWiiU, previousPos), getMemory<BEVec3>(actorPtr + offsetof(ActorWiiU, previousPos)));
-            // overlay->AddOrUpdateEntity(actorId, actorName, "previousPos2", actorPtr + offsetof(ActorWiiU, previousPos2), getMemory<BEVec3>(actorPtr + offsetof(ActorWiiU, previousPos2)));
-            // overlay->AddOrUpdateEntity(actorId, actorName, "dispDistSq", actorPtr + offsetof(ActorWiiU, dispDistSq), getMemory<float>(actorPtr + offsetof(ActorWiiU, dispDistSq)));
-            // overlay->AddOrUpdateEntity(actorId, actorName, "deleteDistSq", actorPtr + offsetof(ActorWiiU, deleteDistSq), getMemory<float>(actorPtr + offsetof(ActorWiiU, deleteDistSq)));
-            // overlay->AddOrUpdateEntity(actorId, actorName, "loadDistP10", actorPtr + offsetof(ActorWiiU, loadDistP10), getMemory<float>(actorPtr + offsetof(ActorWiiU, loadDistP10)));
-            overlay->AddOrUpdateEntity(actorId, actorName, "lodDrawDistanceMultiplier", actorPtr + offsetof(ActorWiiU, lodDrawDistanceMultiplier), getMemory<float>(actorPtr + offsetof(ActorWiiU, lodDrawDistanceMultiplier)));
+            uint32_t physicsMtxPtr = 0;
+            if (readMemoryBE(actorPtr + offsetof(ActorWiiU, physicsMtxPtr), &physicsMtxPtr); physicsMtxPtr != 0) {
+                overlay->AddOrUpdateEntity(actorId, actorName, "physicsMtx", physicsMtxPtr, getMemory<BEMatrix34>(physicsMtxPtr));
+            }
+            addField.operator()<BEVec3>("velocity", offsetof(ActorWiiU, velocity));
+            addField.operator()<BEVec3>("angularVelocity", offsetof(ActorWiiU, angularVelocity));
+            addField.operator()<BEVec3>("scale", offsetof(ActorWiiU, scale));
+            addField.operator()<BEVec3>("previousPos", offsetof(ActorWiiU, previousPos));
+            addField.operator()<BEVec3>("previousPos2", offsetof(ActorWiiU, previousPos2));
+            addField.operator()<float>("dispDistSq", offsetof(ActorWiiU, dispDistSq));
+            addField.operator()<float>("deleteDistSq", offsetof(ActorWiiU, deleteDistSq));
+            addField.operator()<float>("loadDistP10", offsetof(ActorWiiU, loadDistP10));
+            addField.operator()<uint32_t>("modelBindInfoPtr", offsetof(ActorWiiU, modelBindInfoPtr));
+            addField.operator()<uint32_t>("gsysModelPtr", offsetof(ActorWiiU, gsysModelPtr));
+            addField.operator()<float>("startModelOpacity", offsetof(ActorWiiU, startModelOpacity));
+            addField.operator()<BEVec3>("aabb_min", offsetof(ActorWiiU, aabb.minX));
+            addField.operator()<BEVec3>("aabb_max", offsetof(ActorWiiU, aabb.maxX));
+            addField.operator()<uint32_t>("flags2", offsetof(ActorWiiU, flags2));
+            addField.operator()<uint32_t>("flags2Copy", offsetof(ActorWiiU, flags2Copy));
+            addField.operator()<uint32_t>("flags", offsetof(ActorWiiU, flags));
+            addField.operator()<uint32_t>("flags3", offsetof(ActorWiiU, flags3));
+            addField.operator()<uint32_t>("hashId", offsetof(ActorWiiU, hashId));
+            addField.operator()<uint32_t>("chemicals", offsetof(ActorWiiU, chemicals));
+            addField.operator()<uint32_t>("reactions", offsetof(ActorWiiU, reactions));
+            addField.operator()<float>("lodDrawDistanceMultiplier", offsetof(ActorWiiU, lodDrawDistanceMultiplier));
         }
 
         // other systems might've added memory to the overlay, so hence this is a separate loop
         for (auto& entity : VRManager::instance().VK->m_imguiOverlay->m_entities | std::views::values) {
+            if (!entity.isEntity)
+                continue;
+
             for (auto& value : entity.values) {
                 if (!value.frozen)
                     continue;
@@ -191,7 +277,6 @@ void CemuHooks::updateFrames() {
 
 extern glm::fvec3 g_lookAtPos;
 extern glm::fquat g_lookAtQuat;
-extern glm::fquat g_VRtoGame;
 extern OpenXR::EyeSide s_currentEye;
 
 glm::fquat rotateHorizontalCounter = glm::quat(glm::vec3(0.0f, glm::pi<float>(), 0.0f));
@@ -243,26 +328,6 @@ void vrhook_changeWeaponMtx(OpenXR::EyeSide side, BEMatrix34& toBeAdjustedMtx, B
     toBeAdjustedMtx.pos_x = finalPos.x;
     toBeAdjustedMtx.pos_y = finalPos.y;
     toBeAdjustedMtx.pos_z = finalPos.z;
-
-
-    // convert in-game info to glm
-    // glm::fmat3 existingInGameWeaponRotation(
-    //     toBeAdjustedMtx.x_x, toBeAdjustedMtx.y_x, toBeAdjustedMtx.z_x,
-    //     toBeAdjustedMtx.x_y, toBeAdjustedMtx.y_y, toBeAdjustedMtx.z_y,
-    //     toBeAdjustedMtx.x_z, toBeAdjustedMtx.y_z, toBeAdjustedMtx.z_z
-    // );
-    // glm::fquat existingInGameWeaponRotationQuat = glm::quat_cast(existingInGameWeaponRotation);
-    // glm::vec3 ingameWeaponPos(
-    //     toBeAdjustedMtx.pos_x,
-    //     toBeAdjustedMtx.pos_y,
-    //     toBeAdjustedMtx.pos_z
-    // );
-    // glm::vec3 inGamePlayerPos(
-    //     defaultMtx.pos_x,
-    //     defaultMtx.pos_y,
-    //     defaultMtx.pos_z
-    // );
-
 }
 
 void CemuHooks::hook_changeWeaponMtx(PPCInterpreter_t* hCPU) {
@@ -316,24 +381,24 @@ void CemuHooks::hook_changeWeaponMtx(PPCInterpreter_t* hCPU) {
         if (m_overlay) {
             // m_overlay->m_playerPos = playerMtx.getPos().getLE();
 
-            m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_mtx" : "right_mtx", hCPU->gpr[5], weaponMtx);
-            m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_extra_mtx" : "right_extra_mtx", hCPU->gpr[6], playerMtx);
-            m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_item_mtx" : "right_item_mtx", modelBindInfoPtr, modelBindInfoMtx);
+            m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_weapon_mtx" : "right_weapon_mtx", hCPU->gpr[5], weaponMtx);
+            m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_player_mtx" : "right_player_mtx", hCPU->gpr[6], playerMtx);
+            m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_ModelBindInfo_mtx" : "right_ModelBindInfo_mtx", modelBindInfoPtr, modelBindInfoMtx);
             BEVec3 zeroMtx = {-100.0f, -100.0f, -100.0f};
             m_overlay->SetPosition(1337, zeroMtx, zeroMtx);
 
             // freeze the value so it doesn't get overwritten
             Entity& entity = m_overlay->m_entities[1337];
             for (auto& value : entity.values) {
-                if (value.value_name == (isLeftHandWeapon ? "left_mtx" : "right_mtx") && value.frozen) {
+                if (value.value_name == (isLeftHandWeapon ? "left_weapon_mtx" : "right_weapon_mtx") && value.frozen) {
                     weaponMtx = std::get<BEMatrix34>(value.value);
                     writeMemory(hCPU->gpr[5], &weaponMtx);
                 }
-                else if (value.value_name == (isLeftHandWeapon ? "left_extra_mtx" : "right_extra_mtx") && value.frozen) {
+                else if (value.value_name == (isLeftHandWeapon ? "left_player_mtx" : "right_player_mtx") && value.frozen) {
                     playerMtx = std::get<BEMatrix34>(value.value);
                     writeMemory(hCPU->gpr[6], &playerMtx);
                 }
-                else if (value.value_name == (isLeftHandWeapon ? "left_item_mtx" : "right_item_mtx") && value.frozen) {
+                else if (value.value_name == (isLeftHandWeapon ? "left_ModelBindInfo_mtx" : "right_ModelBindInfo_mtx") && value.frozen) {
                     modelBindInfoMtx = std::get<BEMatrix34>(value.value);
                     writeMemory(modelBindInfoPtr, &modelBindInfoMtx);
                 }

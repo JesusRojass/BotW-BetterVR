@@ -7,6 +7,11 @@ moduleMatches = 0x6267BFD0
 
 ; disables the opacity fade effect when it gets near the camera
 0x02C05A2C = cmpw r3, r3
+; disables the opacity fade effect when it gets near any graphics
+;0x02C05A2C = cmpw r3, r3
+
+; disables camera collision fading when it collides with objects
+;0x02C07848 = cmpwi r1, 0
 
 ; 0x101C0084 = .float 0.0
 ; 0x02C0E38C = cmpw r3, r3

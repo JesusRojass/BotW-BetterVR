@@ -89,7 +89,7 @@ private:
     static auto getMemory(uint64_t offset) {
         if constexpr (is_BEType_v<T>) {
             T result;
-            readMemoryBE(offset, &result);
+            readMemory(offset, &result);
             return result;
         }
         else {

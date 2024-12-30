@@ -14,9 +14,12 @@ struct EntityValue {
 
 struct Entity {
     std::string name;
+    bool isEntity;
     float priority;
     BEVec3 position;
     glm::fquat rotation;
+    glm::fvec3 aabbMin;
+    glm::fvec3 aabbMax;
     std::vector<EntityValue> values;
 };
 
@@ -39,11 +42,13 @@ public:
         bool m_disablePoints = true;
         bool m_disableTexts = false;
         bool m_disableRotations = true;
+        bool m_disableAABBs = false;
         glm::fvec3 m_playerPos = {};
 
-        void AddOrUpdateEntity(uint32_t actorId, const std::string& entityName, const std::string& valueName, uint32_t address, ValueVariant&& value);
+        void AddOrUpdateEntity(uint32_t actorId, const std::string& entityName, const std::string& valueName, uint32_t address, ValueVariant&& value, bool isEntity = false);
         void SetPosition(uint32_t actorId, const BEVec3& ws_playerPos, const BEVec3& ws_entityPos);
         void SetRotation(uint32_t actorId, const glm::fquat rotation);
+        void SetAABB(uint32_t actorId, glm::fvec3 min, glm::fvec3 max);
         void RemoveEntity(uint32_t actorId);
 
 

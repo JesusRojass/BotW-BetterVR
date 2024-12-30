@@ -261,6 +261,39 @@ void DrawFrustumInPlot(glm::vec3& position, glm::fquat& rotation, XrFovf& fov, I
     }
 }
 
+void DrawAABBInPlot(glm::fvec3 pos, glm::fvec3& min, glm::fvec3& max, glm::fquat& rotation) {
+    glm::fvec3 corners[8] = {
+        {min.x, min.y, min.z},
+        {max.x, min.y, min.z},
+        {max.x, max.y, min.z},
+        {min.x, max.y, min.z},
+        {min.x, min.y, max.z},
+        {max.x, min.y, max.z},
+        {max.x, max.y, max.z},
+        {min.x, max.y, max.z}
+    };
+
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * glm::mat4_cast(rotation);
+
+    ImPlot3DPoint aabbPoints[8];
+    for (int i = 0; i < 8; ++i) {
+        glm::vec4 worldPos = transform * glm::vec4(corners[i], 1.0f);
+        aabbPoints[i] = ImPlot3DPoint(worldPos.x, worldPos.z, worldPos.y);
+    }
+
+    int edges[12][2] = {
+        {0, 1}, {1, 2}, {2, 3}, {3, 0}, // near plane
+        {4, 5}, {5, 6}, {6, 7}, {7, 4}, // far plane
+        {0, 4}, {1, 5}, {2, 6}, {3, 7}  // connecting edges
+    };
+
+    for (const auto& edge : edges) {
+        ImVec2 p0 = ImPlot3D::PlotToPixels(aabbPoints[edge[0]]);
+        ImVec2 p1 = ImPlot3D::PlotToPixels(aabbPoints[edge[1]]);
+        ImPlot3D::GetPlotDrawList()->AddLine(p0, p1, IM_COL32(255, 0, 0, 255));
+    }
+}
+
 void RND_Vulkan::ImGuiOverlay::BeginFrame() {
     ImGui_ImplVulkan_NewFrame();
     ImGui::NewFrame();
@@ -326,10 +359,11 @@ void RND_Vulkan::ImGuiOverlay::BeginFrame() {
     ImGui::Checkbox("Disable Points For Entities", &m_disablePoints);
     ImGui::Checkbox("Disable Text For Entities", &m_disableTexts);
     ImGui::Checkbox("Disable Rotations For Entities", &m_disableRotations);
+    ImGui::Checkbox("Disable AABBs For Entities", &m_disableAABBs);
 
     if (ImPlot3D::BeginPlot("World Space Inspector", ImVec2(-1, 0), ImPlot3DFlags_NoLegend | ImPlot3DFlags_NoTitle)) {
         // add -50 and 50 to playerPos to make the plot centered around the player
-        constexpr float zoomOutAxis = 50.0f;
+        constexpr float zoomOutAxis = 30.0f;
         ImPlot3D::SetupAxesLimits(
             -zoomOutAxis, +zoomOutAxis,
             -zoomOutAxis, +zoomOutAxis,
@@ -361,6 +395,9 @@ void RND_Vulkan::ImGuiOverlay::BeginFrame() {
                 float yList[] = { start.z, end.z };
                 float zList[] = { start.y, end.y };
                 ImPlot3D::PlotLine(entity.name.c_str(), xList, yList, zList, 2);
+            }
+            if (!m_disableAABBs) {
+                DrawAABBInPlot(entity.position.getLE(), entity.aabbMin, entity.aabbMax, entity.rotation);
             }
         }
 
@@ -684,8 +721,8 @@ void RND_Vulkan::ImGuiOverlay::UpdateControls() {
 
 // Memory Viewer/Editor
 
-void RND_Vulkan::ImGuiOverlay::AddOrUpdateEntity(uint32_t actorId, const std::string& entityName, const std::string& valueName, uint32_t address, ValueVariant&& value) {
-    const auto& [entityIt, _] = m_entities.try_emplace(actorId, Entity{ entityName, 0.0f, {}, {} });
+void RND_Vulkan::ImGuiOverlay::AddOrUpdateEntity(uint32_t actorId, const std::string& entityName, const std::string& valueName, uint32_t address, ValueVariant&& value, bool isEntity) {
+    const auto& [entityIt, _] = m_entities.try_emplace(actorId, Entity{ entityName, isEntity, 0.0f, {}, {}, {}, {} });
 
     const auto& valueIt = std::ranges::find_if(entityIt->second.values, [&](EntityValue& val) {
         return val.value_name == valueName;
@@ -709,6 +746,13 @@ void RND_Vulkan::ImGuiOverlay::SetPosition(uint32_t actorId, const BEVec3& ws_pl
 void RND_Vulkan::ImGuiOverlay::SetRotation(uint32_t actorId, const glm::fquat rotation) {
     if (const auto it = m_entities.find(actorId); it != m_entities.end()) {
         it->second.rotation = rotation;
+    }
+}
+
+void RND_Vulkan::ImGuiOverlay::SetAABB(uint32_t actorId, glm::fvec3 min, glm::fvec3 max) {
+    if (const auto it = m_entities.find(actorId); it != m_entities.end()) {
+        it->second.aabbMin = min;
+        it->second.aabbMax = max;
     }
 }
 
