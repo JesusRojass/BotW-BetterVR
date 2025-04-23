@@ -70,7 +70,7 @@ void RND_Renderer::EndFrame() {
     XrCompositionLayerQuad layer2D = { XR_TYPE_COMPOSITION_LAYER_QUAD };
     m_presented2DLastFrame = m_layer2D.GetStatus() == Layer2D::Status2D::RENDERING;
     if (m_presented2DLastFrame) {
-        // The HUD/menus aren't eye-specific, so just present the most recent one for both eyes at once
+        // The HUD/menus aren't eye-specific, so present the most recent one for both eyes at once
         m_layer2D.Render();
         layer2D = m_layer2D.FinishRendering();
         compositionLayers.emplace_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer2D));
@@ -198,18 +198,6 @@ void RND_Renderer::Layer3D::UpdatePoses(OpenXR::EyeSide side) {
         return; // what should occur when the orientation is invalid? keep rendering using old values?
 
     m_currViews = views;
-
-    // todo: this increases the 3D effect but it also makes the camera clip into the ground and also causes the camera to control weirdly
-    // {
-    //     glm::fvec3 positions{ (m_currViews[0].pose.position.x, m_currViews[0].pose.position.y, m_currViews[0].pose.position.z) };
-    //     positions = positions * 10.0f;
-    //     m_currViews[0].pose.position = { positions.x, positions.y, positions.z };
-    // }
-    // {
-    //     glm::fvec3 positions{ (m_currViews[1].pose.position.x, m_currViews[1].pose.position.y, m_currViews[1].pose.position.z) };
-    //     positions = positions * 10.0f;
-    //     m_currViews[1].pose.position = { positions.x, positions.y, positions.z };
-    // }
 }
 
 void RND_Renderer::Layer3D::StartRendering() {
@@ -291,7 +279,7 @@ const std::array<XrCompositionLayerProjectionView, 2>& RND_Renderer::Layer3D::Fi
         .minDepth = -1.0f,
         .maxDepth = 1.0f,
         .nearZ = 1.0f,
-        .farZ = 10000.0f,
+        .farZ = 25000.0f,
     };
     m_projectionViews[OpenXR::EyeSide::RIGHT] = {
         .type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW,
@@ -324,7 +312,7 @@ const std::array<XrCompositionLayerProjectionView, 2>& RND_Renderer::Layer3D::Fi
         .minDepth = -1.0f,
         .maxDepth = 1.0f,
         .nearZ = 1.0f,
-        .farZ = 10000.0f,
+        .farZ = 25000.0f,
     };
     // clang-format on
     return m_projectionViews;

@@ -12,7 +12,7 @@ Swapchain<T>::Swapchain(uint32_t width, uint32_t height, uint32_t sampleCount): 
         xrEnumerateSwapchainFormats(VRManager::instance().XR->GetSession(), swapchainCount, &swapchainCount, xrPreferredFormats.data());
 
         auto found = std::ranges::find_first_of(xrPreferredFormats, applicationSupportedFormats);
-        if (found == std::end(xrPreferredFormats)) {
+        if (found == xrPreferredFormats.end()) {
             throw std::runtime_error("OpenXR runtime doesn't support any of the presenting modes that the OpenXR drivers support.");
         }
         return (DXGI_FORMAT)*found;

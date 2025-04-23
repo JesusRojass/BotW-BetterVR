@@ -7,7 +7,7 @@ uint64_t CemuHooks::s_memoryBaseAddress = 0;
 std::atomic_uint32_t CemuHooks::s_framesSinceLastCameraUpdate = 0;
 
 void CemuHooks::hook_UpdateSettings(PPCInterpreter_t* hCPU) {
-    // Log::print("Updated settings!");
+    Log::print("Updated settings!");
     hCPU->instructionPointer = hCPU->sprNew.LR;
 
     updateFrames();
@@ -17,13 +17,13 @@ void CemuHooks::hook_UpdateSettings(PPCInterpreter_t* hCPU) {
 
     readMemory(ppc_settingsOffset, &settings);
 
-    std::lock_guard<std::mutex> lock(g_settingsMutex);
+    std::lock_guard lock(g_settingsMutex);
     g_settings = settings;
-    s_framesSinceLastCameraUpdate++;
+    // s_framesSinceLastCameraUpdate++;
 }
 
 data_VRSettingsIn CemuHooks::GetSettings() {
-    std::lock_guard<std::mutex> lock(g_settingsMutex);
+    std::lock_guard lock(g_settingsMutex);
     return g_settings;
 }
 

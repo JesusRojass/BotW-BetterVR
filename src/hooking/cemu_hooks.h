@@ -29,6 +29,11 @@ public:
         osLib_registerHLEFunction("coreinit", "hook_InjectXRInput", &hook_InjectXRInput);
         osLib_registerHLEFunction("coreinit", "hook_modifyHandModelAccessSearch", &hook_modifyHandModelAccessSearch);
         osLib_registerHLEFunction("coreinit", "hook_changeWeaponMtx", &hook_changeWeaponMtx);
+
+        osLib_registerHLEFunction("coreinit", "hook_BeginCameraSide", &hook_BeginCameraSide);
+        osLib_registerHLEFunction("coreinit", "hook_EndCameraSide", &hook_EndCameraSide);
+        osLib_registerHLEFunction("coreinit", "hook_GetRenderProjection", &hook_GetRenderProjection);
+        osLib_registerHLEFunction("coreinit", "hook_GetRenderCamera", &hook_GetRenderCamera);
     };
     ~CemuHooks() {
         FreeLibrary(m_cemuHandle);
@@ -53,12 +58,18 @@ private:
     static void hook_UpdateCameraRotation(PPCInterpreter_t* hCPU);
     static void hook_UpdateCameraOffset(PPCInterpreter_t* hCPU);
     static void hook_CalculateCameraAspectRatio(PPCInterpreter_t* hCPU);
+
     static void hook_CreateNewScreen(PPCInterpreter_t* hCPU);
     static void hook_UpdateActorList(PPCInterpreter_t* hCPU);
     static void hook_CreateNewActor(PPCInterpreter_t* hCPU);
     static void hook_InjectXRInput(PPCInterpreter_t* hCPU);
     static void hook_modifyHandModelAccessSearch(PPCInterpreter_t* hCPU);
     static void hook_changeWeaponMtx(PPCInterpreter_t* hCPU);
+
+    static void hook_BeginCameraSide(PPCInterpreter_t* hCPU);
+    static void hook_GetRenderCamera(PPCInterpreter_t* hCPU);
+    static void hook_GetRenderProjection(PPCInterpreter_t* hCPU);
+    static void hook_EndCameraSide(PPCInterpreter_t* hCPU);
 
     static void updateFrames();
 

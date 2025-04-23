@@ -548,8 +548,7 @@ void CemuHooks::hook_changeWeaponMtx(PPCInterpreter_t* hCPU) {
         hCPU->gpr[9] = 1;
 
 #ifdef ENABLE_DEBUG_INSPECTOR
-        auto& m_overlay = VRManager::instance().VK->m_imguiOverlay;
-        if (m_overlay) {
+        if (auto& m_overlay = VRManager::instance().VK->m_imguiOverlay) {
             m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_weapon_mtx" : "right_weapon_mtx", hCPU->gpr[5], weaponMtx);
             m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_player_mtx" : "right_player_mtx", hCPU->gpr[6], playerMtx);
             m_overlay->AddOrUpdateEntity(1337, "PlayerHeldWeapons", isLeftHandWeapon ? "left_ModelBindInfo_mtx" : "right_ModelBindInfo_mtx", hCPU->gpr[7], modelBindInfoMtx);

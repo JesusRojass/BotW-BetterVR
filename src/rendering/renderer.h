@@ -114,6 +114,10 @@ public:
 protected:
     XrSession m_session;
     XrFrameState m_frameState = { XR_TYPE_FRAME_STATE };
+
+    std::mutex m_mutex;
+    std::optional<OpenXR::EyeSide> m_eyeSide = std::nullopt;
+
     std::atomic_bool m_presented3DLastFrame = false;
     std::atomic_bool m_presented2DLastFrame = false;
 };

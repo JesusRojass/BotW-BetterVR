@@ -58,6 +58,7 @@ using Microsoft::WRL::ComPtr;
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/projection.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 inline std::string& toLower(std::string str) {
@@ -208,6 +209,10 @@ struct BEVec3 : BETypeCompatible {
     glm::fvec3 getLE() const {
         return { x.getLE(), y.getLE(), z.getLE() };
     }
+
+    bool operator==(const BEVec3& other) const {
+        return x == other.x && y == other.y && z == other.z;
+    }
 };
 
 struct BEMatrix34 : BETypeCompatible {
@@ -235,6 +240,29 @@ struct BEMatrix34 : BETypeCompatible {
         std::array row1 = { x_y.getLE(), y_y.getLE(), z_y.getLE(), pos_y.getLE() };
         std::array row2 = { x_z.getLE(), y_z.getLE(), z_z.getLE(), pos_z.getLE() };
         return { row0, row1, row2 };
+    }
+
+    glm::mat3x4 getLEMatrix() const {
+        return {
+            x_x.getLE(), y_x.getLE(), z_x.getLE(), pos_x.getLE(),
+            x_y.getLE(), y_y.getLE(), z_y.getLE(), pos_y.getLE(),
+            x_z.getLE(), y_z.getLE(), z_z.getLE(), pos_z.getLE()
+        };
+    }
+
+    void setLEMatrix(const glm::mat3x4& mtx) {
+        x_x = mtx[0][0];
+        y_x = mtx[0][1];
+        z_x = mtx[0][2];
+        pos_x = mtx[0][3];
+        x_y = mtx[1][0];
+        y_y = mtx[1][1];
+        z_y = mtx[1][2];
+        pos_y = mtx[1][3];
+        x_z = mtx[2][0];
+        y_z = mtx[2][1];
+        z_z = mtx[2][2];
+        pos_z = mtx[2][3];
     }
 
     BEVec3 getPos() const {
@@ -294,7 +322,7 @@ struct BEMatrix44 : BETypeCompatible {
         );
     }
 
-    void setLE(glm::fmat4 mtx) {
+    void operator=(glm::fmat4 mtx) {
         a00 = mtx[0][0];
         a01 = mtx[0][1];
         a02 = mtx[0][2];
@@ -353,8 +381,20 @@ struct BESeadProjection {
     BEType<float> deviceZOffset;
     BEType<uint32_t> __vftable;
 };
+
+struct BESeadPerspectiveProjection : BESeadProjection {
+    BEType<float> zNear;
+    BEType<float> zFar;
+    BEType<float> fovYRadiansOrAngle;
+    BEType<float> fovySin;
+    BEType<float> fovyCos;
+    BEType<float> fovyTan;
+    BEType<float> aspect;
+    BEVec2 offset;
+};
 #pragma pack(pop)
 static_assert(sizeof(BESeadProjection) == 0x94, "BESeadProjection size mismatch");
+static_assert(sizeof(BESeadPerspectiveProjection) == 0xB8, "BESeadPerspectiveProjection size mismatch");
 
 #pragma pack(push, 1)
 struct BESeadCamera {
@@ -365,6 +405,10 @@ struct BESeadLookAtCamera : BESeadCamera {
     BEVec3 pos;
     BEVec3 at;
     BEVec3 up;
+
+    bool operator==(const BESeadLookAtCamera& other) const {
+        return pos == other.pos && at == other.at && up == other.up;
+    }
 };
 #pragma pack(pop)
 static_assert(sizeof(BESeadCamera) == 0x34, "BESeadCamera size mismatch");

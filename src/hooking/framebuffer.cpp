@@ -64,11 +64,11 @@ void VkDeviceOverrides::CmdClearColorImage(const vkroots::VkDeviceDispatch* pDis
                     layer3D.InitTextures(it->second.first);
                     layer2D.InitTextures(it->second.first);
 
+                    Log::print("Found rendering resolution {}x{} @ {} using capture #{}", it->second.first.width, it->second.first.height, it->second.second, captureIdx);
                     imguiOverlay = std::make_unique<RND_Vulkan::ImGuiOverlay>(commandBuffer, it->second.first.width, it->second.first.height, VK_FORMAT_A2B10G10R10_UNORM_PACK32);
                     VRManager::instance().VK->m_imguiOverlay->BeginFrame();
                     VRManager::instance().VK->m_imguiOverlay->Update();
 
-                    Log::print("Found rendering resolution {}x{} @ {} using capture #{}", it->second.first.width, it->second.first.height, it->second.second, captureIdx);
                     VRManager::instance().XR->GetRenderer()->StartFrame();
                 }
                 else {
@@ -77,6 +77,8 @@ void VkDeviceOverrides::CmdClearColorImage(const vkroots::VkDeviceDispatch* pDis
                 lockImageResolutions.unlock();
             }
         }
+
+        Log::print("Capturing color for {} layer", captureIdx == 0 ? "3D" : "2D");
 
         if (captureIdx == 0) {
             // 3D layer - color texture for 3D rendering
@@ -178,6 +180,8 @@ void VRLayer::VkDeviceOverrides::CmdClearDepthStencilImage(const vkroots::VkDevi
 
         auto& layer3D = VRManager::instance().XR->GetRenderer()->m_layer3D;
         auto& layer2D = VRManager::instance().XR->GetRenderer()->m_layer2D;
+
+        Log::print("Capturing depth for 3D layer");
 
         if (captureIdx == 1) {
             // 3D layer - depth texture for 3D rendering
@@ -315,12 +319,12 @@ VkResult VkDeviceOverrides::QueuePresentKHR(const vkroots::VkDeviceDispatch* pDi
         if (renderer->m_layer3D.GetStatus() == Status3D::LEFT_BINDING_DEPTH) {
             // Log::print("Preparing for 3D rendering - right eye");
             renderer->m_layer3D.PrepareRendering(OpenXR::EyeSide::RIGHT);
-            s_currentEye = OpenXR::EyeSide::LEFT;
+            // s_currentEye = OpenXR::EyeSide::LEFT;
         }
         else {
             renderer->EndFrame();
             renderer->StartFrame();
-            s_currentEye = OpenXR::EyeSide::RIGHT;
+            // s_currentEye = OpenXR::EyeSide::RIGHT;
         }
     }
 

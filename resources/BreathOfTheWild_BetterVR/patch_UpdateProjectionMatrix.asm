@@ -31,7 +31,7 @@ mtlr r0
 addi r1, r1, 0x18
 blr
 
-0x02C07708 = bla updateCameraOffset
+;0x02C07708 = bla updateCameraOffset
 
 
 updateCameraAspectRatio:
@@ -50,7 +50,7 @@ mtlr r0
 addi r1, r1, 0x10
 blr
 
-0x0386D024 = bla updateCameraAspectRatio
+;0x0386D024 = bla updateCameraAspectRatio
 
 
 loadLineFormat:
