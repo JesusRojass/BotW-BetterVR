@@ -224,7 +224,7 @@ void OpenXR::CreateActions() {
         createAction(m_gameplayActionSet, "ingame_map", "Open/Close Map (Select Button)", XR_ACTION_TYPE_BOOLEAN_INPUT, m_inGame_mapAction);
         createAction(m_gameplayActionSet, "ingame_inventory", "Open/Close Inventory (Start Button)", XR_ACTION_TYPE_BOOLEAN_INPUT, m_inGame_inventoryAction);
 
-        createAction(m_gameplayActionSet, "rumble", "Rumble", XR_ACTION_TYPE_VIBRATION_OUTPUT, m_rumbleAction);
+        // createAction(m_gameplayActionSet, "rumble", "Rumble", XR_ACTION_TYPE_VIBRATION_OUTPUT, m_rumbleAction);
     }
 
     {

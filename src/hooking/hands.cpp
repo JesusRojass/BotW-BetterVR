@@ -134,7 +134,13 @@ void CemuHooks::hook_EnableWeaponAttackSensor(PPCInterpreter_t* hCPU) {
     Weapon weapon = {};
     readMemory(weaponPtr, &weapon);
 
-    if (isHeldByPlayer) {
+    ActorWiiU parentActor = {};
+    readMemory(parentActorPtr, &parentActor);
+
+    // 0x3A0 is 0 apparently for some armor stands maybe?
+    bool hasPhysics = parentActor.actorPhysicsPtr.getLE() != 0;
+
+    if (isHeldByPlayer && hasPhysics) {
         weapon.setupAttackSensor.resetAttack = 1;
         weapon.setupAttackSensor.mode = 2;
         weapon.setupAttackSensor.setContactLayer = 0;

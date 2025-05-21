@@ -62,7 +62,7 @@ public:
             XrActionStateBoolean rightTrigger;
         } inMenu;
     };
-    std::atomic<InputState> m_input = {};
+    std::atomic<InputState> m_input = InputState{};
 
     void CreateSession(const XrGraphicsBindingD3D12KHR& d3d12Binding);
     void CreateActions();
@@ -71,11 +71,11 @@ public:
     std::optional<OpenXR::InputState> UpdateActions(XrTime predictedFrameTime, bool inMenu);
     void ProcessEvents();
 
-    XrSession GetSession() { return m_session; }
-    RND_Renderer* GetRenderer() { return m_renderer.get(); }
+    XrSession GetSession() const { return m_session; }
+    RND_Renderer* GetRenderer() const { return m_renderer.get(); }
 
 private:
-    XrPath GetXRPath(const char* str) {
+    XrPath GetXRPath(const char* str) const {
         XrPath path;
         checkXRResult(xrStringToPath(m_instance, str, &path), std::format("Failed to get path for {}", str).c_str());
         return path;
