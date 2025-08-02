@@ -48,18 +48,6 @@ void RND_Renderer::StartFrame() {
 void RND_Renderer::EndFrame() {
     std::vector<XrCompositionLayerBaseHeader*> compositionLayers;
 
-    // todo: currently ignores m_frameState.shouldRender, but that's probably fine
-    XrCompositionLayerQuad layer2D = { XR_TYPE_COMPOSITION_LAYER_QUAD };
-    m_presented2DLastFrame = m_layer2D && m_layer2D->HasCopied();
-    // checkAssert(m_presented2DLastFrame, "2D layer should always be rendered!");
-    if (m_presented2DLastFrame) {
-        // The HUD/menus aren't eye-specific, so present the most recent one for both eyes at once
-        m_layer2D->StartRendering();
-        m_layer2D->Render();
-        layer2D = m_layer2D->FinishRendering(m_frameState.predictedDisplayTime);
-        compositionLayers.emplace_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer2D));
-    }
-
     m_presented3DLastFrame = false;
     XrCompositionLayerProjection layer3D = { XR_TYPE_COMPOSITION_LAYER_PROJECTION };
     std::array<XrCompositionLayerProjectionView, 2> layer3DViews = {};
@@ -77,6 +65,18 @@ void RND_Renderer::EndFrame() {
             m_presented3DLastFrame = true;
             compositionLayers.emplace_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer3D));
         }
+    }
+
+    // todo: currently ignores m_frameState.shouldRender, but that's probably fine
+    XrCompositionLayerQuad layer2D = { XR_TYPE_COMPOSITION_LAYER_QUAD };
+    m_presented2DLastFrame = m_layer2D && m_layer2D->HasCopied();
+    // checkAssert(m_presented2DLastFrame, "2D layer should always be rendered!");
+    if (m_presented2DLastFrame) {
+        // The HUD/menus aren't eye-specific, so present the most recent one for both eyes at once
+        m_layer2D->StartRendering();
+        m_layer2D->Render();
+        layer2D = m_layer2D->FinishRendering(m_frameState.predictedDisplayTime);
+        compositionLayers.emplace_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer2D));
     }
 
     XrFrameEndInfo frameEndInfo = { XR_TYPE_FRAME_END_INFO };
