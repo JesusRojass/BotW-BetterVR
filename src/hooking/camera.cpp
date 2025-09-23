@@ -308,6 +308,55 @@ void CemuHooks::hook_GetRenderProjection(PPCInterpreter_t* hCPU) {
     hCPU->gpr[3] = projectionOut;
 }
 
+
+void CemuHooks::hook_ModifyLightPrePassProjectionMatrix(PPCInterpreter_t* hCPU) {
+    hCPU->instructionPointer = hCPU->sprNew.LR;
+
+    uint32_t projectionIn = hCPU->gpr[3];
+    OpenXR::EyeSide side = hCPU->gpr[11] == 0 ? OpenXR::EyeSide::LEFT : OpenXR::EyeSide::RIGHT;
+
+    BESeadPerspectiveProjection perspectiveProjection = {};
+    readMemory(projectionIn, &perspectiveProjection);
+
+    if (!VRManager::instance().XR->GetRenderer()->GetFOV(side).has_value()) {
+        return;
+    }
+
+    XrFovf currFOV = VRManager::instance().XR->GetRenderer()->GetFOV(side).value();
+    auto newProjection = calculateFOVAndOffset(currFOV);
+
+    perspectiveProjection.aspect = newProjection.aspectRatio;
+    perspectiveProjection.fovYRadiansOrAngle = newProjection.fovY;
+    float halfAngle = newProjection.fovY.getLE() * 0.5f;
+    perspectiveProjection.fovySin = sinf(halfAngle);
+    perspectiveProjection.fovyCos = cosf(halfAngle);
+    perspectiveProjection.fovyTan = tanf(halfAngle);
+    perspectiveProjection.offset.x = newProjection.offsetX;
+    perspectiveProjection.offset.y = newProjection.offsetY;
+
+    glm::fmat4 newMatrix = calculateProjectionMatrix(perspectiveProjection.zNear.getLE(), perspectiveProjection.zFar.getLE(), currFOV);
+    perspectiveProjection.matrix = newMatrix;
+
+    // calculate device matrix
+    glm::fmat4 newDeviceMatrix = newMatrix;
+
+    float zScale = perspectiveProjection.deviceZScale.getLE();
+    float zOffset = perspectiveProjection.deviceZOffset.getLE();
+
+    newDeviceMatrix[2][0] *= zScale;
+    newDeviceMatrix[2][1] *= zScale;
+    newDeviceMatrix[2][2] = (newDeviceMatrix[2][2] + newDeviceMatrix[3][2] * zOffset) * zScale;
+    newDeviceMatrix[2][3] = newDeviceMatrix[2][3] * zScale + newDeviceMatrix[3][3] * zOffset;
+
+    perspectiveProjection.deviceMatrix = newDeviceMatrix;
+
+    perspectiveProjection.dirty = false;
+    perspectiveProjection.deviceDirty = false;
+
+    writeMemory(projectionIn, &perspectiveProjection);
+}
+
+
 //float previousAddedAngle = 0.0f;
 void CemuHooks::hook_ApplyCameraRotation(PPCInterpreter_t* hCPU) {
     hCPU->instructionPointer = hCPU->sprNew.LR;

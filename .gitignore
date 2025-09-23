@@ -55,7 +55,4 @@ CMakeSettings.json
 cmake-build-*/
 build/
 
-
-CMakeUserPresets.json
-
 src/rendering/vc140.pdb

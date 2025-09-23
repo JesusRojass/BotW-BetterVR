@@ -578,10 +578,6 @@ blr
 
 ; ==================================================================================
 ; ==================================================================================
-; ==================================================================================
-; ==================================================================================
-
-; ---------------- RENDER CAMERA ----------------
 ;0x03AEA94C = agl__lyr__RenderInfo__RenderInfo_returnAddr:
 
 const_0:
@@ -720,7 +716,63 @@ blr
 
 0x03AE4AEC = ba agl__lyr__Layer__getRenderProjection
 
+; =================================================================================
+; most rendering functions use getRenderProjection to get the projection matrix
+; however, the light pre-pass ALSO uses sead::Projection::getProjectionMatrix
+; the patch below fixes the lights not lighting up objects/walls correctly in VR
+; =================================================================================
 
+0x030C0F4C = sead_projection_updateMatrixImpl:
+0x033DBBB8 = returnAddress_lightPrePassProjectionMatrix:
+
+custom_sead__Projection__getProjectionMatrix:
+mflr r0
+stwu r1, -0x20(r1)
+stw r31, 0x0C(r1)
+stw r0, 0x24(r1)
+stw r11, 0x18(r1)
+stw r12, 0x14(r1)
+
+; prevent modifying anything but sead::PerspectiveProjection
+lwz r12, 0x90(r3)
+lis r11, seadPerspectiveProjection_vtbl@ha
+addi r11, r11, seadPerspectiveProjection_vtbl@l
+cmpw r12, r11
+bne continue_sead__Projection__getProjectionMatrix
+
+; only hook the light pre-pass projection matrix change
+lis r11, returnAddress_lightPrePassProjectionMatrix@ha
+addi r11, r11, returnAddress_lightPrePassProjectionMatrix@l
+cmpw r0, r11
+bne continue_sead__Projection__getProjectionMatrix
+
+; call C++ code to modify the projection matrix to use the VR projection matrices for each eye
+lis r11, currentEyeSide@ha
+lwz r11, currentEyeSide@l(r11)
+bla import.coreinit.hook_ModifyLightPrePassProjectionMatrix
+
+continue_sead__Projection__getProjectionMatrix:
+lis r31, sead_projection_updateMatrixImpl@ha
+addi r31, r31, sead_projection_updateMatrixImpl@l
+mtctr r31
+mr r31, r3
+bctrl ; bl sead::Projection::updateMatrix
+addi r3, r31, 4
+
+lwz r12, 0x14(r1)
+lwz r11, 0x18(r1)
+lwz r0, 0x24(r1)
+lwz r31, 0x0C(r1)
+mtlr r0
+addi r1, r1, 0x20
+blr
+
+0x030C1008 = ba custom_sead__Projection__getProjectionMatrix
+
+
+; ==================================================================================
+; EVERYTHING BELOW IS HOOKED BUT UNUSED
+; ==================================================================================
 
 0x02C0378C = orig_act_GetCamera:
 

@@ -85,7 +85,7 @@ inline XrQuaternionf ToXR(const glm::fquat& quat) {
     return { quat.x, quat.y, quat.z, quat.w };
 }
 
-inline std::string& toLower(std::string str) {
+inline std::string toLower(std::string str) {
     std::ranges::transform(str, str.begin(), [](unsigned char c) { return std::tolower(c); });
     return str;
 }

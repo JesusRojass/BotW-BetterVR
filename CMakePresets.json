@@ -1,19 +1,24 @@
 {
-    "version": 2,
+    "version": 3,
     "configurePresets": [
         {
             "name": "vcpkg",
+            "hidden": true,
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/cmake-build-${presetName}",
+            "environment": {
+                "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
+            },
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "VCPKG_MANIFEST_MODE": "ON"
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+                },
+                "VCPKG_MANIFEST_MODE": {
+                    "type": "BOOL",
+                    "value": "ON"
+                }
             }
         }
-    ],
-    "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-            "hostOS": [ "Windows" ]
-        }
-    }
+    ]
 }

@@ -26,7 +26,6 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT B
 
 # Set compilation options
 add_compile_definitions(NOMINMAX)
-add_compile_options("/await")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug>:EditAndContinue>$<$<CONFIG:RelWithDebInfo>:ProgramDatabase>")
 
@@ -121,6 +120,7 @@ target_include_directories(BetterVR_Layer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/de
 
 # Set install rules
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/BetterVR_Layer.json" "${CMAKE_CURRENT_SOURCE_DIR}/resources/Launch_BetterVR.bat" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+#install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/graphicPacks/BreathOfTheWild_BetterVR\")")
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/resources/BreathOfTheWild_BetterVR" DESTINATION "${CMAKE_INSTALL_PREFIX}/graphicPacks")
 install(TARGETS BetterVR_Layer DESTINATION "${CMAKE_INSTALL_PREFIX}")
 install(FILES $<TARGET_PDB_FILE:BetterVR_Layer> DESTINATION "${CMAKE_INSTALL_PREFIX}")

@@ -46,6 +46,7 @@ public:
 
         osLib_registerHLEFunction("coreinit", "hook_ModifyBoneMatrix", &hook_ModifyBoneMatrix);
         osLib_registerHLEFunction("coreinit", "hook_ModifyModelBoneMatrix", &hook_ModifyModelBoneMatrix);
+        osLib_registerHLEFunction("coreinit", "hook_ModifyLightPrePassProjectionMatrix", &hook_ModifyLightPrePassProjectionMatrix);
     };
     ~CemuHooks() {
         FreeLibrary(m_cemuHandle);
@@ -106,6 +107,8 @@ private:
 
     static void hook_ModifyBoneMatrix(PPCInterpreter_t* hCPU);
     static void hook_ModifyModelBoneMatrix(PPCInterpreter_t* hCPU);
+
+    static void hook_ModifyLightPrePassProjectionMatrix(PPCInterpreter_t* hCPU);
 
 public:
     template <typename T>

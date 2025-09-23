@@ -1,4 +1,4 @@
-[BetterVR_UpdateProjectionMatrix_V208]
+[BetterVR_CameraControls_V208]
 moduleMatches = 0x6267BFD0
 
 .origin = codecave
@@ -131,7 +131,6 @@ addi r1, r1, 0x20
 mtlr r0
 
 ; todo: disable this for third-person mode
-
 lis r3, cameraFinder@ha
 lwz r3, cameraFinder@l(r3)
 

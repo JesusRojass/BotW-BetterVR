@@ -1,0 +1,41 @@
+{
+    "version": 9,
+    "configurePresets": [
+        {
+            "name": "Debug",
+            "inherits": "vcpkg",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "environment": {
+                "VCPKG_ROOT": "$penv{VCPKG_ROOT}",
+                "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
+            },
+            "installDir": "${sourceDir}/Cemu"
+        },
+        {
+            "name": "Release",
+            "inherits": "vcpkg",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            },
+            "environment": {
+                "VCPKG_ROOT": "$penv{VCPKG_ROOT}",
+                "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
+            },
+            "installDir": "${sourceDir}/Cemu"
+        },
+        {
+            "name": "RelWithDebInfo",
+            "inherits": "vcpkg",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "environment": {
+                "VCPKG_ROOT": "$penv{VCPKG_ROOT}",
+                "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
+            },
+            "installDir": "${sourceDir}/Cemu"
+        }
+    ]
+}
