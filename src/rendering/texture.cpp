@@ -188,10 +188,12 @@ Texture::Texture(uint32_t width, uint32_t height, DXGI_FORMAT format): m_d3d12Fo
 }
 
 void Texture::d3d12SignalFence(uint64_t value) {
+    SetLastSignalledValue(value);
     VRManager::instance().D3D12->GetCommandQueue()->Signal(m_d3d12Fence.Get(), value);
 }
 
 void Texture::d3d12WaitForFence(uint64_t value) {
+    SetLastAwaitedValue(value);
     VRManager::instance().D3D12->GetCommandQueue()->Wait(m_d3d12Fence.Get(), value);
 }
 

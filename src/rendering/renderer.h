@@ -3,6 +3,7 @@
 #include "d3d12.h"
 #include "openxr.h"
 #include "swapchain.h"
+#include "texture.h"
 
 class SharedTexture;
 
@@ -64,9 +65,9 @@ public:
         explicit Layer2D(VkExtent2D extent);
         ~Layer2D();
 
-        bool IsRendering() { return m_copiedColor; }
         SharedTexture* CopyColorToLayer(VkCommandBuffer copyCmdBuffer, VkImage image);
-        bool HasCopied() const { return m_copiedColor; };
+        bool HasRecordedCopy() const { return m_recordedCopy; }
+        bool HasCopied() const { return m_recordedCopy && m_texture->GetLastSignalledValue() == SEMAPHORE_TO_D3D12; };
         void StartRendering() const;
         void Render();
         std::vector<XrCompositionLayerQuad> FinishRendering(XrTime predictedDisplayTime);
@@ -75,7 +76,7 @@ public:
         std::unique_ptr<Swapchain<DXGI_FORMAT_R8G8B8A8_UNORM_SRGB>> m_swapchain;
         std::unique_ptr<RND_D3D12::PresentPipeline<false>> m_presentPipeline;
         std::unique_ptr<SharedTexture> m_texture;
-        std::atomic_bool m_copiedColor = false;
+        std::atomic_bool m_recordedCopy = false;
 
         static constexpr float DISTANCE = 2.0f;
         static constexpr float LERP_SPEED = 0.05f;

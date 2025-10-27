@@ -62,7 +62,7 @@ mr r3, r30
 bctrl ; sead__GameFrameworkCafe__procDraw
 
 ; todo: see if we can get rid of this command
-bl import.gx2.GX2DrawDone
+;bl import.gx2.GX2DrawDone
 
 li r0, 0
 lis r12, currentEyeSide@ha

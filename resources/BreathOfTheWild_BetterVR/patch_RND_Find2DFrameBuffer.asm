@@ -50,6 +50,7 @@ beq skipClearing2DColorBuffer
 addi r3, r3, 0xBC ; r3 is now the agl::RenderBuffer::mColorBuffer[0]::mGX2FrameBuffer object
 
 bl import.gx2.GX2ClearColor
+
 bla import.gx2.GX2DrawDone
 
 stwu r1, -0x20(r1)

@@ -153,8 +153,10 @@ void VkDeviceOverrides::CmdClearColorImage(const vkroots::VkDeviceDispatch* pDis
             //     return pDispatch->CmdClearColorImage(commandBuffer, image, imageLayout, pColor, rangeCount, pRanges);
             // }
 
+            bool alreadyCopiedOrAtLeastSignaled = layer2D->HasCopied() || layer2D->HasRecordedCopy();
+
             // copy the current 2D framebuffer image that's holding the 2D image, before overwriting the contents with the imgui-rendered 2D view (which combines the left eye view and HUD to create the "regular" 2D image)
-            if (!layer2D->HasCopied() && !CemuHooks::GetSettings().ShowDebugOverlay()) {
+            if (!alreadyCopiedOrAtLeastSignaled && !CemuHooks::GetSettings().ShowDebugOverlay()) {
                 // only copy the first attempt at capturing when GX2ClearColor is called with this capture index since the game/Cemu clears the 2D layer twice
                 SharedTexture* texture = layer2D->CopyColorToLayer(commandBuffer, image);
                 s_activeCopyOperations.emplace_back(commandBuffer, texture);
@@ -178,7 +180,7 @@ void VkDeviceOverrides::CmdClearColorImage(const vkroots::VkDeviceDispatch* pDis
                 VulkanUtils::TransitionLayout(commandBuffer, image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL);
             }
 
-            if (!layer2D->HasCopied() && CemuHooks::GetSettings().ShowDebugOverlay()) {
+            if (!alreadyCopiedOrAtLeastSignaled && CemuHooks::GetSettings().ShowDebugOverlay()) {
                 // only copy the first attempt at capturing when GX2ClearColor is called with this capture index since the game/Cemu clears the 2D layer twice
                 SharedTexture* texture = layer2D->CopyColorToLayer(commandBuffer, image);
                 s_activeCopyOperations.emplace_back(commandBuffer, texture);
@@ -331,7 +333,7 @@ VkResult VkDeviceOverrides::QueueSubmit(const vkroots::VkDeviceDispatch* pDispat
                 for (auto it = s_activeCopyOperations.begin(); it != s_activeCopyOperations.end();) {
                     if (submitInfo.pCommandBuffers[j] == it->first) {
                         // wait for D3D12/XR to finish with the previous shared texture render
-                        modifiedSubmitInfo.waitSemaphores.emplace_back(it->second->GetSemaphore());
+                        modifiedSubmitInfo.waitSemaphores.emplace_back(it->second->GetSemaphoreForWait(SEMAPHORE_TO_VULKAN));
                         modifiedSubmitInfo.waitDstStageMasks.emplace_back(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
                         modifiedSubmitInfo.timelineWaitValues.emplace_back(SEMAPHORE_TO_VULKAN);
 
@@ -343,7 +345,7 @@ VkResult VkDeviceOverrides::QueueSubmit(const vkroots::VkDeviceDispatch* pDispat
 #endif
 
                         // signal to D3D12/XR rendering that the shared texture can be rendered to VR headset
-                        modifiedSubmitInfo.signalSemaphores.emplace_back(it->second->GetSemaphore());
+                        modifiedSubmitInfo.signalSemaphores.emplace_back(it->second->GetSemaphoreForSignal(SEMAPHORE_TO_D3D12));
                         modifiedSubmitInfo.timelineSignalValues.emplace_back(SEMAPHORE_TO_D3D12);
                         it = s_activeCopyOperations.erase(it);
                         foundCommandBufferForActiveCopyOperations = true;

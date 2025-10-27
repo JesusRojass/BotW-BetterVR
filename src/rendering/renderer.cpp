@@ -332,7 +332,7 @@ RND_Renderer::Layer2D::~Layer2D() {
 SharedTexture* RND_Renderer::Layer2D::CopyColorToLayer(VkCommandBuffer copyCmdBuffer, VkImage image) {
     m_swapchain->PrepareRendering();
     m_texture->CopyFromVkImage(copyCmdBuffer, image);
-    m_copiedColor = true;
+    m_recordedCopy = true;
     return m_texture.get();
 }
 
@@ -360,7 +360,7 @@ void RND_Renderer::Layer2D::Render() {
         m_texture->d3d12TransitionLayout(context->GetRecordList(), D3D12_RESOURCE_STATE_COPY_DEST);
         context->Signal(m_texture.get(), SEMAPHORE_TO_VULKAN);
     });
-    m_copiedColor = false;
+    m_recordedCopy = false;
 }
 
 std::vector<XrCompositionLayerQuad> RND_Renderer::Layer2D::FinishRendering(XrTime predictedDisplayTime) {

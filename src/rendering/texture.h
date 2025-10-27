@@ -61,7 +61,23 @@ public:
     ID3D12Resource* d3d12GetTexture() const { return m_d3d12Texture.Get(); }
     DXGI_FORMAT d3d12GetFormat() const { return m_d3d12Format; }
 
+    uint64_t GetLastSignalledValue() const { return m_fenceLastSignaledValue; }
+    uint64_t GetLastAwaitedValue() const { return m_fenceLastAwaitedValue; }
+
 protected:
+    void SetLastSignalledValue(uint64_t value) {
+#if defined(_DEBUG)
+        Log::print("Signal fence for texture {} with value {}", (void*)this, value);
+#endif
+        m_fenceLastSignaledValue = value;
+    }
+    void SetLastAwaitedValue(uint64_t value) {
+#if defined(_DEBUG)
+        Log::print("Wait for fence for texture {} with value {}", (void*)this, value);
+#endif
+        m_fenceLastAwaitedValue = value;
+    }
+
     DXGI_FORMAT m_d3d12Format;
     HANDLE m_d3d12TextureHandle = nullptr;
     ComPtr<ID3D12Resource> m_d3d12Texture;
@@ -69,6 +85,8 @@ protected:
 
     HANDLE m_d3d12FenceHandle = nullptr;
     ComPtr<ID3D12Fence> m_d3d12Fence;
+    uint64_t m_fenceLastSignaledValue = 0;
+    uint64_t m_fenceLastAwaitedValue = 0;
 };
 
 class SharedTexture : public Texture, public BaseVulkanTexture {
@@ -78,6 +96,14 @@ public:
 
     void CopyFromVkImage(VkCommandBuffer cmdBuffer, VkImage srcImage);
     const VkSemaphore& GetSemaphore() const { return m_vkSemaphore; }
+    const VkSemaphore& GetSemaphoreForSignal(uint64_t dbg_SignalTo = 0) {
+        SetLastSignalledValue(dbg_SignalTo);
+        return m_vkSemaphore;
+    }
+    const VkSemaphore& GetSemaphoreForWait(uint64_t dbg_WaitFor = 0) {
+        SetLastAwaitedValue(dbg_WaitFor);
+        return m_vkSemaphore;
+    }
 
 private:
     VkSemaphore m_vkSemaphore = VK_NULL_HANDLE;
