@@ -69,7 +69,7 @@ private:
 
     void update_thread() {
         using clock = std::chrono::steady_clock;
-        const auto period = std::chrono::milliseconds(1000 / 60); // roughly 16.67ms
+        const auto period = std::chrono::milliseconds(1000 / 60);
 
         auto next_tick = clock::now();
         while (!m_shutdown.load(std::memory_order_relaxed)) {
@@ -81,29 +81,26 @@ private:
                         m_current_rumbling = false;
                     }
                     m_parser = 0;
-                    return;
                 }
-
-                const auto& current_pattern = m_rumble_queue.front();
-                bool should_rumble = current_pattern[m_parser];
-
-                if (should_rumble != m_current_rumbling) {
-                    if (should_rumble) {
-                        apply_haptic_infinite();
+                else {
+                    const auto& current_pattern = m_rumble_queue.front();
+                    bool should_rumble = current_pattern[m_parser];
+                    if (should_rumble != m_current_rumbling) {
+                        if (should_rumble) {
+                            apply_haptic_infinite();
+                        }
+                        else {
+                            stop_haptic();
+                        }
+                        m_current_rumbling = should_rumble;
                     }
-                    else {
-                        stop_haptic();
+                    ++m_parser;
+                    if (m_parser >= current_pattern.size()) {
+                        m_rumble_queue.pop();
+                        m_parser = 0;
                     }
-                    m_current_rumbling = should_rumble;
-                }
-
-                ++m_parser;
-                if (m_parser >= current_pattern.size()) {
-                    m_rumble_queue.pop();
-                    m_parser = 0;
                 }
             }
-
             next_tick += period;
             std::this_thread::sleep_until(next_tick);
         }
