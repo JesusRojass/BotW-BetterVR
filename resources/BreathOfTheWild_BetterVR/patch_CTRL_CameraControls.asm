@@ -106,3 +106,24 @@ mr r31, r3
 blr
 
 0x02B8FCA4 = bla useCameraFinder
+
+
+; ==================================================================================
+; disables CameraChase's atMoveOffset
+; also prevents camera from slowly drifting panning towards where Link is walking
+0x02B9D164 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D184 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D1A4 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D1C4 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D1E4 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D204 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D224 = bla import.coreinit.hook_OverwriteCameraParam
+
+0x02B9D244 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D264 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D284 = bla import.coreinit.hook_OverwriteCameraParam
+
+; prevent camera from connecting to things
+0x02B9D2E4 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D304 = bla import.coreinit.hook_OverwriteCameraParam
+0x02B9D324 = bla import.coreinit.hook_OverwriteCameraParam

@@ -243,9 +243,6 @@ void CemuHooks::hook_GetRenderProjection(PPCInterpreter_t* hCPU) {
     perspectiveProjection.zFar = GetSettings().GetZFar();
     perspectiveProjection.zNear = GetSettings().GetZNear();
 
-    // Log::print("Render Proj. (LR: {:08X}): {}", hCPU->sprNew.LR, perspectiveProjection);
-    // Log::print("[PPC] Getting render projection for {} side", side == OpenXR::EyeSide::LEFT ? "left" : "right");
-
     if (!VRManager::instance().XR->GetRenderer()->GetFOV(side).has_value()) {
         return;
     }
@@ -423,5 +420,20 @@ void CemuHooks::hook_GetEventName(PPCInterpreter_t* hCPU) {
     }
     else {
         //Log::print("!! There's no active event");
+    }
+}
+
+constexpr uint32_t orig_GetStaticParam_float_funcAddr = 0x030E9BE0;
+
+void CemuHooks::hook_OverwriteCameraParam(PPCInterpreter_t* hCPU) {
+    if (GetSettings().IsFirstPersonMode()) {
+        hCPU->instructionPointer = hCPU->sprNew.LR;
+
+        uint32_t destFloatPtr = getMemory<BEType<uint32_t>>(hCPU->gpr[4]).getLE();
+        uint32_t superLowAddress = 0x102B3150; // points to 0.0000011920929
+        writeMemoryBE(hCPU->gpr[4], &superLowAddress);
+    }
+    else {
+        hCPU->instructionPointer = orig_GetStaticParam_float_funcAddr;
     }
 }

@@ -7,10 +7,10 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             },
-            "environment": {
-                "VCPKG_ROOT": "$penv{VCPKG_ROOT}",
-                "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
-            },
+          "environment": {
+            "VCPKG_ROOT": "C:\\Programs\\vcpkg",
+            "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
+          },
             "installDir": "${sourceDir}/Cemu"
         },
         {
@@ -19,10 +19,10 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             },
-            "environment": {
-                "VCPKG_ROOT": "$penv{VCPKG_ROOT}",
-                "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
-            },
+          "environment": {
+            "VCPKG_ROOT": "C:\\Programs\\vcpkg",
+            "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
+          },
             "installDir": "${sourceDir}/Cemu"
         },
         {
@@ -31,10 +31,10 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             },
-            "environment": {
-                "VCPKG_ROOT": "$penv{VCPKG_ROOT}",
-                "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
-            },
+          "environment": {
+            "VCPKG_ROOT": "C:\\Programs\\vcpkg",
+            "META_XR_SIMULATOR_PATH": "${sourceDir}/MetaXRSimulator"
+          },
             "installDir": "${sourceDir}/Cemu"
         }
     ]

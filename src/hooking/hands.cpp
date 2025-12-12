@@ -182,7 +182,7 @@ void CemuHooks::hook_CreateNewScreen(PPCInterpreter_t* hCPU) {
 
     const char* screenName = (const char*)(s_memoryBaseAddress + hCPU->gpr[7]);
     ScreenId screenId = (ScreenId)hCPU->gpr[5];
-    Log::print<CONTROLS>("Switching to new screen \"{}\" with ID {:08X}...", screenName, std::to_underlying(screenId));
+    Log::print<CONTROLS>("Creating new screen \"{}\" with ID {:08X}...", screenName, std::to_underlying(screenId));
 
     // todo: When a pickup screen is shown, we should track if the user does a short grip press, and if it was the left and right hand.
     if (screenId == ScreenId::PickUp_00) {

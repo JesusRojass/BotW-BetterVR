@@ -419,6 +419,13 @@ struct BEMatrix44 : BETypeCompatible {
     }
 };
 
+enum class EventMode {
+    NO_EVENT = 0,
+    ALWAYS_FIRST_PERSON = 1,
+    FOLLOW_DEFAULT_EVENT_SETTINGS = 2,
+    ALWAYS_THIRD_PERSON = 3,
+};
+
 struct data_VRSettingsIn {
     BEType<int32_t> cameraModeSetting;
     BEType<int32_t> leftHandedSetting;
@@ -428,6 +435,8 @@ struct data_VRSettingsIn {
     BEType<int32_t> cropFlatTo16x9Setting;
     BEType<int32_t> enableDebugOverlay;
     BEType<int32_t> buggyAngularVelocity;
+    BEType<int32_t> cutsceneCameraMode;
+    BEType<int32_t> cutsceneBlackBars;
 
     bool IsLeftHanded() const {
         return leftHandedSetting == 1;
@@ -439,6 +448,19 @@ struct data_VRSettingsIn {
 
     bool IsThirdPersonMode() const {
         return cameraModeSetting == 0;
+    }
+
+    EventMode GetCutsceneCameraMode() const {
+        // if in third-person mode, always use third-person cutscene camera
+        if (IsThirdPersonMode()) {
+            return EventMode::ALWAYS_THIRD_PERSON;
+        }
+
+        return (EventMode)cutsceneCameraMode.getLE();
+    }
+
+    bool UseBlackBarsForCutscenes() const {
+        return cutsceneBlackBars == 1;
     }
 
     bool UIFollowsLookingDirection() const {
@@ -469,7 +491,6 @@ struct data_VRSettingsIn {
         AUTO = 0, // Angular velocity fixer is automatically enabled for Oculus Link
         FORCED_ON = 1,
         FORCED_OFF = 2,
-
     };
 
     AngularVelocityFixerMode AngularVelocityFixer_GetMode() {
