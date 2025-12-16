@@ -136,12 +136,10 @@ void VkDeviceOverrides::CmdClearColorImage(const vkroots::VkDeviceDispatch* pDis
             VulkanUtils::DebugPipelineBarrier(commandBuffer);
             VulkanUtils::TransitionLayout(commandBuffer, image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL);
 
-            if (imguiOverlay && side == OpenXR::EyeSide::RIGHT) {
-                float aspectRatio = layer3D->GetAspectRatio(OpenXR::EyeSide::RIGHT);
+            // note: Uses vkCmdCopyImage to copy the (right-eye-only) image to the imgui overlay's texture
+            float aspectRatio = layer3D->GetAspectRatio(side);
+            imguiOverlay->Draw3DLayerAsBackground(commandBuffer, image, aspectRatio, frameIdx);
 
-                // note: Uses vkCmdCopyImage to copy the (right-eye-only) image to the imgui overlay's texture
-                imguiOverlay->Draw3DLayerAsBackground(commandBuffer, image, aspectRatio, frameIdx);
-            }
             VulkanUtils::DebugPipelineBarrier(commandBuffer);
             VulkanUtils::TransitionLayout(commandBuffer, image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL);
 

@@ -255,7 +255,7 @@ void RND_Renderer::ImGuiOverlay::BeginFrame(long frameIdx, bool renderBackground
         frame.hudWithoutAlphaFramebufferDS = ImGui_ImplVulkan_AddTexture(m_sampler, frame.hudWithoutAlphaFramebuffer->GetImageView(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     }
 
-    if (renderBackground) {
+    if (renderBackground || CemuHooks::UseBlackBarsDuringEvents()) {
         const bool shouldCrop3DTo16_9 = CemuHooks::GetSettings().cropFlatTo16x9Setting == 1;
 
         // calculate width minus the retina scaling
@@ -267,7 +267,7 @@ void RND_Renderer::ImGuiOverlay::BeginFrame(long frameIdx, bool renderBackground
         ImVec2 centerPos = ImVec2((windowSize.x - windowSize.y * frame.mainFramebufferAspectRatio) / 2, 0);
         ImVec2 squishedWindowSize = ImVec2(windowSize.y * frame.mainFramebufferAspectRatio, windowSize.y);
 
-        bool shouldRender3DBackground = VRManager::instance().XR->GetRenderer()->IsRendering3D(frameIdx);
+        bool shouldRender3DBackground = VRManager::instance().XR->GetRenderer()->IsRendering3D(frameIdx) || CemuHooks::UseBlackBarsDuringEvents();
 
         {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -275,7 +275,7 @@ void RND_Renderer::ImGuiOverlay::BeginFrame(long frameIdx, bool renderBackground
             ImGui::SetNextWindowPos(ImVec2(0, 0));
             ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize);
             ImGui::Begin("HUD Background", nullptr, FULLSCREEN_WINDOW_FLAGS);
-            ImGui::Image((ImTextureID)(shouldRender3DBackground ? frame.hudFramebufferDS : frame.hudWithoutAlphaFramebufferDS), windowSize);
+            ImGui::Image((ImTextureID)(shouldRender3DBackground && !CemuHooks::UseBlackBarsDuringEvents() ? frame.hudFramebufferDS : frame.hudWithoutAlphaFramebufferDS), windowSize);
             ImGui::End();
             ImGui::PopStyleVar();
             ImGui::PopStyleVar();
@@ -327,23 +327,23 @@ void RND_Renderer::ImGuiOverlay::BeginFrame(long frameIdx, bool renderBackground
     }
 
     {
-        // calculate width minus the retina scaling
-        ImVec2 windowSize = ImGui::GetIO().DisplaySize;
-        windowSize.x = windowSize.x / ImGui::GetIO().DisplayFramebufferScale.x;
-        windowSize.y = windowSize.y / ImGui::GetIO().DisplayFramebufferScale.y;
+        //// calculate width minus the retina scaling
+        //ImVec2 windowSize = ImGui::GetIO().DisplaySize;
+        //windowSize.x = windowSize.x / ImGui::GetIO().DisplayFramebufferScale.x;
+        //windowSize.y = windowSize.y / ImGui::GetIO().DisplayFramebufferScale.y;
 
-        {
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            ImGui::SetNextWindowPos(ImVec2(0, 0));
-            ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize);
+        //{
+        //    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        //    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        //    ImGui::SetNextWindowPos(ImVec2(0, 0));
+        //    ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize);
 
-            ImGui::Begin("Weapon Selector", nullptr, FULLSCREEN_WINDOW_FLAGS);
-            ImGui::Text("Hello World!");
-            ImGui::End();
-            ImGui::PopStyleVar();
-            ImGui::PopStyleVar();
-        }
+        //    ImGui::Begin("Weapon Selector", nullptr, FULLSCREEN_WINDOW_FLAGS);
+        //    ImGui::Text("Hello World!");
+        //    ImGui::End();
+        //    ImGui::PopStyleVar();
+        //    ImGui::PopStyleVar();
+        //}
     }
 
     if (VRManager::instance().Hooks->m_entityDebugger) {
