@@ -110,13 +110,19 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
 
         newXRBtnHold |= mapXRButtonToVpad(inputs.inGame.cancel, VPAD_BUTTON_B);
 
-        newXRBtnHold |= mapXRButtonToVpad(inputs.inGame.interact, VPAD_BUTTON_A);
+        newXRBtnHold |= mapXRButtonToVpad(inputs.inGame.useRune, VPAD_BUTTON_L);
+        newXRBtnHold |= mapXRButtonToVpad(inputs.inGame.throwWeapon, VPAD_BUTTON_R);
 
-        if (inputs.inGame.grabState[0].lastEvent == GrabButtonState::Event::ShortPress)
-            newXRBtnHold |= VPAD_BUTTON_L;
+        /*newXRBtnHold |= mapXRButtonToVpad(inputs.inGame.interact, VPAD_BUTTON_A);*/
 
-        if (inputs.inGame.grabState[1].lastEvent == GrabButtonState::Event::ShortPress)
-            newXRBtnHold |= VPAD_BUTTON_R;
+        if (inputs.inGame.grabState[0].lastEvent == GrabButtonState::Event::ShortPress || inputs.inGame.grabState[1].lastEvent == GrabButtonState::Event::ShortPress)
+            newXRBtnHold |= VPAD_BUTTON_A;
+
+        //if (inputs.inGame.grabState[0].lastEvent == GrabButtonState::Event::ShortPress)
+        //    newXRBtnHold |= VPAD_BUTTON_L;
+
+        //if (inputs.inGame.grabState[1].wasDownLastFrame)
+        //    newXRBtnHold |= VPAD_BUTTON_R;
 
         if (inputs.inGame.grabState[0].wasDownLastFrame)
         {
@@ -151,8 +157,8 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
         newXRBtnHold |= mapXRButtonToVpad(inputs.inMenu.sort, VPAD_BUTTON_Y);
         newXRBtnHold |= mapXRButtonToVpad(inputs.inMenu.hold, VPAD_BUTTON_X);
 
-        newXRBtnHold |= mapXRButtonToVpad(inputs.inMenu.leftGrip, VPAD_BUTTON_L);
-        newXRBtnHold |= mapXRButtonToVpad(inputs.inMenu.rightGrip, VPAD_BUTTON_R);
+        newXRBtnHold |= mapXRButtonToVpad(inputs.inMenu.leftTrigger, VPAD_BUTTON_L);
+        newXRBtnHold |= mapXRButtonToVpad(inputs.inMenu.rightTrigger, VPAD_BUTTON_R);
 
         if (inputs.inMenu.leftGrip.currentState)
         {
