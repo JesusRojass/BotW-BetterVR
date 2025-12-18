@@ -95,7 +95,7 @@ mr r3, r30
 bctrl ; sead__GameFrameworkCafe__procDraw
 
 ; doesn't seem to be necessary
-bl import.gx2.GX2DrawDone
+;bl import.gx2.GX2DrawDone
 
 li r0, 0
 lis r12, currentEyeSide@ha
@@ -150,7 +150,7 @@ mr r3, r30
 bctrl ; sead__GameFrameworkCafe__procDraw
 
 ; note: doesn't seem to be necessary
-bl import.gx2.GX2DrawDone
+;bl import.gx2.GX2DrawDone
 
 li r3, 0
 bl import.coreinit.hook_EndCameraSide
