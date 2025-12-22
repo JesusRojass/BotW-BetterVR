@@ -123,7 +123,8 @@ target_sources(BetterVR_Layer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/i
 target_include_directories(BetterVR_Layer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dependencies)
 
 # Set install rules
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/BetterVR_Layer.json" "${CMAKE_CURRENT_SOURCE_DIR}/resources/Launch_BetterVR.bat" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/BetterVR LAUNCH CEMU IN VR.bat" "${CMAKE_CURRENT_SOURCE_DIR}/resources/BetterVR UNINSTALL.bat" "${CMAKE_CURRENT_SOURCE_DIR}/resources/BetterVR LAUNCH CEMU IN VR - COMPATIBILITY MODE.bat" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/BetterVR_Layer.json" DESTINATION "${CMAKE_INSTALL_PREFIX}")
 #install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/graphicPacks/BreathOfTheWild_BetterVR\")")
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/resources/BreathOfTheWild_BetterVR" DESTINATION "${CMAKE_INSTALL_PREFIX}/graphicPacks")
 install(TARGETS BetterVR_Layer DESTINATION "${CMAKE_INSTALL_PREFIX}")
