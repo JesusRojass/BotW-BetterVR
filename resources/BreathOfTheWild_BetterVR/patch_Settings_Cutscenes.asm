@@ -231,8 +231,8 @@ data_TableOfCutsceneEventsSettings:
 .string "Demo650_0,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF" ; name: Gyro terminal operation for DLC dungeon
 .string "Demo650_1,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; name: Door open demo (AoC 2)
 .string "Demo650_2,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; name: Door open demo (AoC 2) (actors not stopped)
-.string "Demo700_0,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; name: Sheikah Slate get demo
-.string "Demo701_0,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; name: Open the second door that leads to the ground | should we prevent hands from all cutscenes or just these?
+.string "Demo700_0,FP_ON,PAN_OFF,HND_ON,CTRL_OFF" ; name: Sheikah Slate get demo
+.string "Demo701_0,FP_ON,PAN_OFF,HND_ON,CTRL_OFF" ; name: Open the second door that leads to the ground | should we prevent hands from all cutscenes or just these?  Camera flips back to look at Link, but maybe we don't want that.  Note: Nah we don't want that - mako  Alright, tested it without panning and it looks great! -Tim
 .string "Demo702_0,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; name: Teba flies to Flight Range with Tulin
 .string "Demo704_0,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF" ; name: Vah Medoh - Explanation by the champion on first time enter
 .string "Demo705_0,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF" ; name: Vah Rudania - Explanation by the champion on first time enter
@@ -359,7 +359,7 @@ data_TableOfCutsceneEventsSettings:
 .string "MiniGame_ShieldSurfing,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
 .string "MiniGame_SmashGolf,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
 .string "MiniGame_TimeLimitHunting,FP_ON,PAN_ON,HND_OFF,CTRL_OFF"
-.string "MouthofDragon,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
+.string "MouthofDragon,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; Kass in the Pagos Woods
 .string "MtMotelMini_Landscape,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "My_Hero,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "NakedIsland,FP_ON,PAN_ON,HND_OFF,CTRL_OFF"
@@ -505,7 +505,7 @@ data_TableOfCutsceneEventsSettings:
 .string "Npc_HatenoVillage033,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_HiddenKorokFly,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_HiddenKorokGround,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
-.string "Npc_HighMountain001,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
+.string "Npc_HighMountain001,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; Tulin of Rito Village
 .string "Npc_HighMountain003,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
 .string "Npc_HighMountain004,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
 .string "Npc_HighMountain005,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
@@ -701,7 +701,7 @@ data_TableOfCutsceneEventsSettings:
 .string "Npc_OldKorok_WetLand,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
 .string "Npc_Remains_Fancier001,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_RitoHatago001,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
-.string "Npc_RitoHatago002,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
+.string "Npc_RitoHatago002,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; Ariane Rito Stable
 .string "Npc_RitoHatago003,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_RitoHatago004,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_RiverSideHatago001,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
@@ -826,7 +826,7 @@ data_TableOfCutsceneEventsSettings:
 .string "Npc_UMiiVillage030,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_UMiiVillage031,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_UMiiVillage031_2,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
-.string "Npc_UMiiVillage032,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
+.string "Npc_UMiiVillage032,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; Bolson
 .string "Npc_ValleyVillage010,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_ValleyVillage031,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Npc_Zora001,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
@@ -881,7 +881,7 @@ data_TableOfCutsceneEventsSettings:
 .string "OperationGuide,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "PictureMemory,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
 .string "Relief_Landing,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
-.string "Remains_Fancier,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
+.string "Remains_Fancier,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; Loone is crazy about relics
 .string "RememberTag,FP_ON,PAN_ON,HND_OFF,CTRL_OFF"
 .string "RinelSearch,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "RitoMini_Cook,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
@@ -900,7 +900,7 @@ data_TableOfCutsceneEventsSettings:
 .string "SDemo_A-7,FP_ON,PAN_ON,HND_OFF,CTRL_OFF"
 .string "SDemo_B-6,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
 .string "SDemo_B-7,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
-.string "SDemo_D-6,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
+.string "SDemo_D-6,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF" ; Zelda telling Link to follow the marker on his map to the first, buried, tower.
 .string "SDemo_F-2,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
 .string "SearchStone,FP_ON,PAN_ON,HND_OFF,CTRL_OFF"
 .string "SecretofObject,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
@@ -986,7 +986,7 @@ data_TableOfCutsceneEventsSettings:
 .string "UotoriMini_RecoverBay,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "UotoriMini_SinkTreasure,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Water_Relic,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF" ; Sidon and Muzu talk in front of Miphas statue.
-.string "Wind_Relic,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
+.string "Wind_Relic,FP_ON,PAN_ON,HND_OFF,CTRL_OFF" ; Saki and Keneli of Rito village both use this call
 .string "XXX,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "Yorozuya_Kaiwa,FP_ON,PAN_OFF,HND_OFF,CTRL_OFF"
 .string "ZoraMini_DiveChallenge,FP_OFF,PAN_ON,HND_OFF,CTRL_OFF"
