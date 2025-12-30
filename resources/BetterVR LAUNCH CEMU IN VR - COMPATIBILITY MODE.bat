@@ -15,6 +15,13 @@ set "ROBOLOG=%CEMU_DIR%\robocopy_debug.log"
 call :Log "=== BetterVR launcher started ==="
 call :Log "Working dir: %CEMU_DIR%"
 
+rem Check for Administrator privileges
+net session >nul 2>&1
+if %errorlevel% equ 0 (
+  call :Log "WARN: Script running as Administrator!"
+  call :Popup "Warning: You are running this script as Administrator. This will launch Cemu as Administrator, which prevents VR from working (VR runtimes cannot hook into Admin processes). Please run as a standard user." "BetterVR Warning"
+)
+
 rem 1) Hard requirement: Cemu.exe must be next to the script
 if not exist "%CEMU_EXE%" (
   call :Log "ERROR: Cemu.exe not found next to script. Exiting."
