@@ -328,7 +328,7 @@ void Texture::d3d12SignalFence(uint64_t value) {
     static uint32_t s_d3d12SignalCount = 0;
     s_d3d12SignalCount++;
     if (s_d3d12SignalCount % 500 == 0) {
-        Log::print<INFO>("D3D12 Signal #{}: texture={}, current={}, signaling to {}",
+        Log::print<VERBOSE>("D3D12 Signal #{}: texture={}, current={}, signaling to {}",
             s_d3d12SignalCount, (void*)this, currentValue, value);
     }
     SetLastSignalledValue(value);
@@ -343,7 +343,7 @@ void Texture::d3d12WaitForFence(uint64_t value) {
     static uint32_t s_d3d12WaitCount = 0;
     s_d3d12WaitCount++;
     if (s_d3d12WaitCount % 500 == 0) {
-        Log::print<INFO>("D3D12 Wait #{}: texture={}, current={}, waiting for {}",
+        Log::print<VERBOSE>("D3D12 Wait #{}: texture={}, current={}, waiting for {}",
             s_d3d12WaitCount, (void*)this, currentValue, value);
     }
     if (currentValue == UINT64_MAX) {
@@ -492,7 +492,7 @@ void SharedTexture::CopyFromVkImage(VkCommandBuffer cmdBuffer, VkImage srcImage,
     // Log every 500 copies for debugging
     if (s_copyCount % 500 == 0) {
         auto desc = this->m_d3d12Texture->GetDesc();
-        Log::print<INFO>("CopyFromVkImage #{}: src={}, dst={}, size={}x{}, srcLayout={}, dstLayout={}, callerManaged={}",
+        Log::print<VERBOSE>("CopyFromVkImage #{}: src={}, dst={}, size={}x{}, srcLayout={}, dstLayout={}, callerManaged={}",
             s_copyCount, (void*)srcImage, (void*)this->m_vkImage,
             desc.Width, desc.Height, (int)srcImageLayout, (int)m_vkCurrLayout, callerManagedLayout);
     }

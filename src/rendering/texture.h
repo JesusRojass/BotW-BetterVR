@@ -77,7 +77,7 @@ protected:
         static uint32_t s_signalCount = 0;
         s_signalCount++;
         if (s_signalCount % 500 == 0 || m_fenceLastSignaledValue == value) {
-            Log::print<INFO>("Semaphore signal #{}: texture={}, value {} -> {} (last waited={})",
+            Log::print<VERBOSE>("Semaphore signal #{}: texture={}, value {} -> {} (last waited={})",
                 s_signalCount, (void*)this, m_fenceLastSignaledValue, value, m_fenceLastAwaitedValue);
         }
         if (m_fenceLastSignaledValue == value && value != 0) {
@@ -89,7 +89,7 @@ protected:
         static uint32_t s_waitCount = 0;
         s_waitCount++;
         if (s_waitCount % 500 == 0 || m_fenceLastAwaitedValue == value) {
-            Log::print<INFO>("Semaphore wait #{}: texture={}, value {} -> {} (last signaled={})",
+            Log::print<VERBOSE>("Semaphore wait #{}: texture={}, value {} -> {} (last signaled={})",
                 s_waitCount, (void*)this, m_fenceLastAwaitedValue, value, m_fenceLastSignaledValue);
         }
         if (m_fenceLastAwaitedValue == value && value != 0) {

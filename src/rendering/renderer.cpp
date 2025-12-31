@@ -118,7 +118,7 @@ void RND_Renderer::EndFrame() {
     frameEndInfo.layers = compositionLayers.data();
 
     if (s_endFrameCount % 500 == 0) {
-        Log::print<INFO>("EndFrame #{}: frameIdx={}, layers={}, 3D={}, 2D={}",
+        Log::print<VERBOSE>("EndFrame #{}: frameIdx={}, layers={}, 3D={}, 2D={}",
             s_endFrameCount, frameIdx, compositionLayers.size(),
             (frameIdx != -1 && m_renderFrames[frameIdx].presented3D) ? "yes" : "no",
             m_presented2DLastFrame ? "yes" : "no");
@@ -202,7 +202,7 @@ SharedTexture* RND_Renderer::Layer3D::CopyColorToLayer(OpenXR::EyeSide side, VkC
 
     // Log every 100 copies to track progress without spam
     if (s_copyCount % 100 == 0) {
-        Log::print<INFO>("Layer3D::CopyColorToLayer #{} - side={}, frameIdx={}, srcImage={}",
+        Log::print<VERBOSE>("Layer3D::CopyColorToLayer #{} - side={}, frameIdx={}, srcImage={}",
             s_copyCount, side == OpenXR::EyeSide::LEFT ? "L" : "R", frameIdx, (void*)image);
     }
     m_currentFrameIdx = frameIdx;
@@ -440,7 +440,7 @@ SharedTexture* RND_Renderer::Layer2D::CopyColorToLayer(VkCommandBuffer copyCmdBu
     static uint32_t s_copyCount = 0;
     s_copyCount++;
     if (s_copyCount % 100 == 0) {
-        Log::print<INFO>("Layer2D::CopyColorToLayer #{} - frameIdx={}, srcImage={}", s_copyCount, frameIdx, (void*)image);
+        Log::print<VERBOSE>("Layer2D::CopyColorToLayer #{} - frameIdx={}, srcImage={}", s_copyCount, frameIdx, (void*)image);
     }
     m_currentFrameIdx = frameIdx;
     m_textures[frameIdx]->CopyFromVkImage(copyCmdBuffer, image, srcImageLayout);
