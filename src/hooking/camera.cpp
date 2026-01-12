@@ -549,6 +549,7 @@ void CemuHooks::initCutsceneDefaultSettings(uint32_t ppc_TableOfCutsceneEventsSe
 
 uint32_t CemuHooks::s_playerAddress = 0;
 
+// todo: Fix sped-up cutscenes. You can go in-game into a save file that didn't have DLC yet, and it'll give you a sped up Demo200_0.
 void CemuHooks::hook_GetEventName(PPCInterpreter_t* hCPU) {
     hCPU->instructionPointer = hCPU->sprNew.LR;
 

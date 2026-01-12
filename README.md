@@ -40,9 +40,9 @@ While more integrated solutions are being found out, there's probably ways to se
 > 
 > If you want to help to improve the mod and tackle some of these issues, reach out in the ZBW Development Channel in the [Flat2VR Discord](https://discord.com/invite/flat2vr) for extra info, context and requirements!
 >
-> **Critical Issues:**
-> * Gravity is higher. Jumping isn't affected, but some shrines might require creative solutions/glitches for now.
+> **Important Issues:**
 > * Weapons might deregister rarely (after breaking?). You might have to drop and pick it up again.
+> * ~~Gravity is higher. Jumping isn't affected, but some shrines might require creative solutions/glitches for now.~~ This is fixed now!
 > * ~~Third-person mode (and cutscenes) often has the player being partially/largely invisible.~~ This is fixed now!
 > * ~~Climbing ladders requires looking away with the camera using your controller stick.~~ This is fixed now!
 > * ~~Some towers can't be unlocked and cause the cutscene to softlock.~~ This is fixed now!
@@ -50,22 +50,26 @@ While more integrated solutions are being found out, there's probably ways to se
 > * ~~**Weapon Glitch:** Sometimes weapons will stop registering hits on enemies.~~
 
 **Audio & Visuals**
-- Slight audio crackling may occur when loading the game or opening menus quickly.
-- Video cutscenes are slow and may have out-of-sync audio. Some voice-acted cutscenes may also overlap or play out of sync.
+- ~~Slight audio crackling may occur when loading the game or opening menus quickly.~~ This is fixed now!
+- The game becomes slowly brighter. Seems to happen (more?) after each loading screen or shrine?
+- Some voice-acted cutscenes or timed text cutscenes are sped-up and have overlapping text/voices.
 - While inside the Divine Beasts, skyboxes appear to sway with the camera more then intended.
 - Stamina wheel is weirdly positioned.
+- There's a very small chance that the screen stays black after exiting any menus, which requires restarting the game to continue.
 
 **Gameplay & Combat**
-- Flurry Rush can be triggered but does not work
+- ~~Flurry Rush can be triggered but does not work.~~ This is fixed now!
+- * Motion control shrines aren't supported yet. There's only a few of these in the game so mark them on your map until its fixed.
 - Bow Aiming is done via a crosshair on the VR headset. Bow support might be added at some point.
 - Enemies will ocassionally not detect you
 - No roomscale support. You can freely move around your room, but enemies and physics will use your center point. 
 
 **Traversal & Physics**
-- Exiting the water while swimming can be difficult at certain angles. Swim dashing sometimes doesn't work. 
+- ~~Exiting the water while swimming can be difficult at certain angles. Swim dashing sometimes doesn't work.~~ This is now fixed!
 - Magnesis & Stasis aim is off-center at far distances. Point your gaze to the **right** of the object to highlight it.
 - Shrine exits require looking at the bottom of the altar from a slight distance before the prompt might appear.
 - Climbing ladders require jumping up the ladder to go up and you have to look at the ladder.
+- You can get stuck behind ladders sometimes, especially when you stop moving at the very top of the ladder while climbing down. So keep moving at the start!
 
 ### Mod Installation
 
