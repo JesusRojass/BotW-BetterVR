@@ -505,9 +505,12 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
     gameState.in_game = inputs.inGame.in_game;
 
     // use the previous values if no new values are written from hook_ChangeWeaponMtx this frame
-    if (!gameState.left_equip_type_set_this_frame) gameState.left_equip_type = gameState.previous_left_equip_type;
-    if (!gameState.right_equip_type_set_this_frame) gameState.right_equip_type = gameState.previous_right_equip_type;
-
+    if (gameState.has_something_in_hand)
+    {
+        if (!gameState.left_equip_type_set_this_frame) gameState.left_equip_type = gameState.previous_left_equip_type;
+        if (!gameState.right_equip_type_set_this_frame) gameState.right_equip_type = gameState.previous_right_equip_type;
+    }
+  
     // buttons
     static uint32_t oldCombinedHold = 0; 
     uint32_t newXRBtnHold = 0;
