@@ -19,18 +19,6 @@ moduleMatches = 0x6267BFD0
 ; hook Player::isRiding()
 0x02D32E98 = ba import.coreinit.hook_PlayerIsRiding
 
-; hook Player::isRiding()
-0x02D32E98 = ba import.coreinit.hook_PlayerIsRiding
-
-; disable gyro controls
-0x02E1905C = li r3, 0
-0x02E19060 = blr
-0x02E19070 = blr
-
-; disable inversed button controls
-0x02E199AC = li r3, 0
-0x02E199B0 = blr
-
 ; forces the player to always be guarding when the shield is drawn
 ; uses player rotation to determine the guard direction, not shield direction
 ;0x02D79F50 = li r3, 1
