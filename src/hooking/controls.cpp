@@ -93,8 +93,8 @@ HandGestureState calculateHandGesture(
 
     // Check distance from stored position
     if (ProcessStoredPositionDistanceCheck) {
-        constexpr float DISTANCE_THRESHOLD = 0.025f;
-        constexpr float MAX_HAND_DISTANCE = 0.15f;
+        constexpr float DISTANCE_THRESHOLD = 0.015f;
+        constexpr float MAX_HAND_DISTANCE = 0.075f;
         auto delta = handPos - storedHandPos;
         auto distance = glm::length(delta);
         gesture.isFarEnoughFromStoredPosition = distance > DISTANCE_THRESHOLD;
