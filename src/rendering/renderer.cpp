@@ -510,7 +510,7 @@ std::vector<XrCompositionLayerQuad> RND_Renderer::Layer2D::FinishRendering(XrTim
     // render layer twice to visualize the controller positions in debug mode
     auto inputs = VRManager::instance().XR->m_input.load();
 
-    if (!(inputs.inGame.in_game && inputs.inGame.pose[OpenXR::EyeSide::LEFT].isActive && inputs.inGame.pose[OpenXR::EyeSide::RIGHT].isActive)) {
+    if (!(inputs.shared.in_game && inputs.shared.pose[OpenXR::EyeSide::LEFT].isActive && inputs.shared.pose[OpenXR::EyeSide::RIGHT].isActive)) {
         return layers;
     }
 
@@ -527,8 +527,8 @@ std::vector<XrCompositionLayerQuad> RND_Renderer::Layer2D::FinishRendering(XrTim
         inputPose.position = ToXR(modifiedPosition);
     };
 
-    if ((inputs.inGame.poseLocation[OpenXR::EyeSide::LEFT].locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) == 1 || (inputs.inGame.poseLocation[OpenXR::EyeSide::LEFT].locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) == 1) {
-        movePoseToHandPosition(inputs.inGame.poseLocation[OpenXR::EyeSide::LEFT].pose);
+    if ((inputs.shared.poseLocation[OpenXR::EyeSide::LEFT].locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) == 1 || (inputs.shared.poseLocation[OpenXR::EyeSide::LEFT].locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) == 1) {
+        movePoseToHandPosition(inputs.shared.poseLocation[OpenXR::EyeSide::LEFT].pose);
         // clang-format off
         layers.push_back({
             .type = XR_TYPE_COMPOSITION_LAYER_QUAD,
@@ -545,14 +545,14 @@ std::vector<XrCompositionLayerQuad> RND_Renderer::Layer2D::FinishRendering(XrTim
                     }
                 }
             },
-            .pose = inputs.inGame.poseLocation[OpenXR::EyeSide::LEFT].pose,
+            .pose = inputs.shared.poseLocation[OpenXR::EyeSide::LEFT].pose,
             .size = { 0.15f, 0.15f }
         });
         // clang-format on
     }
 
-    if ((inputs.inGame.poseLocation[OpenXR::EyeSide::RIGHT].locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) == 1 || (inputs.inGame.poseLocation[OpenXR::EyeSide::RIGHT].locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) == 1) {
-        movePoseToHandPosition(inputs.inGame.poseLocation[OpenXR::EyeSide::RIGHT].pose);
+    if ((inputs.shared.poseLocation[OpenXR::EyeSide::RIGHT].locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) == 1 || (inputs.shared.poseLocation[OpenXR::EyeSide::RIGHT].locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) == 1) {
+        movePoseToHandPosition(inputs.shared.poseLocation[OpenXR::EyeSide::RIGHT].pose);
 
         // clang-format off
         layers.push_back({
@@ -570,7 +570,7 @@ std::vector<XrCompositionLayerQuad> RND_Renderer::Layer2D::FinishRendering(XrTim
                     }
                 }
             },
-            .pose = inputs.inGame.poseLocation[OpenXR::EyeSide::RIGHT].pose,
+            .pose = inputs.shared.poseLocation[OpenXR::EyeSide::RIGHT].pose,
             .size = { 0.15f, 0.15f }
         });
         // clang-format on

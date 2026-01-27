@@ -234,7 +234,7 @@ void handleLeftHandInGameInput(
         rumbleMgr->enqueueInputsRumbleCommand(leftRumbleFall);
 
     // Handle Parry gesture
-    auto handVelocity = glm::length(ToGLM(inputs.inGame.poseVelocity[0].linearVelocity));
+    auto handVelocity = glm::length(ToGLM(inputs.shared.poseVelocity[0].linearVelocity));
     if (handVelocity > 4.0f && gameState.left_equip_type == EquipType::Shield && leftGesture.isNearChestHeight) {
         buttonHold |= VPAD_BUTTON_A;
         rumbleMgr->enqueueInputsRumbleCommand(leftRumbleFall);
@@ -303,7 +303,7 @@ void handleLeftHandInGameInput(
             rightStickSource.currentState.y = 0.0f;
 
             if (!gameState.left_hand_position_stored) {
-                gameState.stored_left_hand_position = ToGLM(inputs.inGame.poseLocation[0].pose.position);
+                gameState.stored_left_hand_position = ToGLM(inputs.shared.poseLocation[0].pose.position);
                 gameState.left_hand_position_stored = true;
                 rumbleMgr->enqueueInputsRumbleCommand(leftRumbleFall);
             }
@@ -475,7 +475,7 @@ void handleRightHandInGameInput(
             rightStickSource.currentState.y = 0.0f;
 
             if (!gameState.right_hand_position_stored) {
-                gameState.stored_right_hand_position = ToGLM(inputs.inGame.poseLocation[1].pose.position);
+                gameState.stored_right_hand_position = ToGLM(inputs.shared.poseLocation[1].pose.position);
                 gameState.right_hand_position_stored = true;
                 rumbleMgr->enqueueInputsRumbleCommand(rightRumbleFall);
             }
@@ -634,9 +634,9 @@ void handleMenuInput(
     if (!gameState.prevent_inputs) {
         buttonHold |= mapButton(inputs.inMenu.back, VPAD_BUTTON_B);
         if (gameState.map_open)
-            buttonHold |= mapButton(inputs.inMenu.inventory_map, VPAD_BUTTON_MINUS);
+            buttonHold |= mapButton(inputs.shared.inventory_map, VPAD_BUTTON_MINUS);
         else
-            buttonHold |= mapButton(inputs.inMenu.inventory_map, VPAD_BUTTON_PLUS);
+            buttonHold |= mapButton(inputs.shared.inventory_map, VPAD_BUTTON_PLUS);
     }
 
     buttonHold |= mapButton(inputs.inMenu.select, VPAD_BUTTON_A);
@@ -689,7 +689,7 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
 
     // fetch game state
     auto gameState = VRManager::instance().XR->m_gameState.load(); 
-    gameState.in_game = inputs.inGame.in_game;
+    gameState.in_game = inputs.shared.in_game;
 
     // use the previous values if no new values are written from hook_ChangeWeaponMtx this frame
     if (gameState.has_something_in_hand)
@@ -729,7 +729,7 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
     // toggleable help menu
     auto& isMenuOpen = VRManager::instance().XR->m_isMenuOpen;
 
-    if (inputs.inGame.modMenuState.lastEvent == ButtonState::Event::ShortPress) {
+    if (inputs.shared.modMenuState.lastEvent == ButtonState::Event::ShortPress) {
         isMenuOpen = !isMenuOpen;
     }
 
@@ -758,8 +758,8 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
         const auto headsetMtx = headsetPose.value();
         const glm::fvec3 headsetPos(headsetMtx[3]);
         
-        const auto leftHandPos = ToGLM(inputs.inGame.poseLocation[0].pose.position);
-        const auto rightHandPos = ToGLM(inputs.inGame.poseLocation[1].pose.position);
+        const auto leftHandPos = ToGLM(inputs.shared.poseLocation[0].pose.position);
+        const auto rightHandPos = ToGLM(inputs.shared.poseLocation[1].pose.position);
         
         leftGesture = calculateHandGesture(gameState, leftHandPos, headsetMtx, headsetPos, gameState.left_hand_position_stored, gameState.stored_left_hand_position);
         rightGesture = calculateHandGesture(gameState, rightHandPos, headsetMtx, headsetPos, gameState.right_hand_position_stored, gameState.stored_right_hand_position);
@@ -800,11 +800,11 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
             }
 
             // Handle map and inventory menu toggle
-            if (inputs.inGame.inventory_mapState.lastEvent == ButtonState::Event::ShortPress) {
+            if (inputs.shared.inventory_mapState.lastEvent == ButtonState::Event::ShortPress) {
                 newXRBtnHold |= VPAD_BUTTON_PLUS;
                 gameState.map_open = false;
             }
-            if (inputs.inGame.inventory_mapState.lastEvent == ButtonState::Event::LongPress) {
+            if (inputs.shared.inventory_mapState.lastEvent == ButtonState::Event::LongPress) {
                 newXRBtnHold |= VPAD_BUTTON_MINUS;
                 gameState.map_open = true;
             }
@@ -969,7 +969,7 @@ void CemuHooks::hook_CreateNewActor(PPCInterpreter_t* hCPU) {
     hCPU->gpr[3] = 0;
 
     // OpenXR::InputState inputs = VRManager::instance().XR->m_input.load();
-    // if (!inputs.inGame.in_game) {
+    // if (!inputs.shared.in_game) {
     //     hCPU->gpr[3] = 0;
     //     return;
     // }

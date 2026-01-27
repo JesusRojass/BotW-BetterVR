@@ -312,10 +312,10 @@ void CemuHooks::hook_ModifyBoneMatrix(PPCInterpreter_t* hCPU) {
 
     // get vr controller position and rotation
     const OpenXR::InputState inputs = VRManager::instance().XR->m_input.load();
-    if (!inputs.inGame.pose[side].isActive)
+    if (!inputs.shared.pose[side].isActive)
         return;
 
-    const auto& pose = inputs.inGame.poseLocation[side];
+    const auto& pose = inputs.shared.poseLocation[side];
     glm::fvec3 controllerPos = glm::fvec3();
     glm::fquat controllerRot = glm::identity<glm::fquat>();
     if (pose.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) {

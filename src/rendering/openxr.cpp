@@ -533,26 +533,26 @@ std::optional<OpenXR::InputState> OpenXR::UpdateActions(XrTime predictedFrameTim
     checkXRResult(xrSyncActions(m_session, &syncInfo), "Failed to sync actions!");
 
     InputState newState = m_input.load();
-    newState.inGame.in_game = !inMenu;
-    newState.inGame.inputTime = predictedFrameTime;
+    newState.shared.in_game = !inMenu;
+    newState.shared.inputTime = predictedFrameTime;
 
     for (EyeSide side : { EyeSide::LEFT, EyeSide::RIGHT }) {
         XrActionStateGetInfo getPoseInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
-        getPoseInfo.action = newState.inGame.in_game ? m_inGameGripPoseAction : m_inMenuGripPoseAction;
+        getPoseInfo.action = newState.shared.in_game ? m_inGameGripPoseAction : m_inMenuGripPoseAction;
         getPoseInfo.subactionPath = m_handPaths[side];
-        newState.inGame.pose[side] = { XR_TYPE_ACTION_STATE_POSE };
-        checkXRResult(xrGetActionStatePose(m_session, &getPoseInfo, &newState.inGame.pose[side]), "Failed to get pose of controller!");
+        newState.shared.pose[side] = { XR_TYPE_ACTION_STATE_POSE };
+        checkXRResult(xrGetActionStatePose(m_session, &getPoseInfo, &newState.shared.pose[side]), "Failed to get pose of controller!");
 
-        if (newState.inGame.pose[side].isActive) {
+        if (newState.shared.pose[side].isActive) {
             XrSpaceLocation spaceLocation = { XR_TYPE_SPACE_LOCATION };
             XrSpaceVelocity spaceVelocity = { XR_TYPE_SPACE_VELOCITY };
             spaceLocation.next = &spaceVelocity;
-            newState.inGame.poseVelocity[side].linearVelocity = { 0.0f, 0.0f, 0.0f };
-            newState.inGame.poseVelocity[side].angularVelocity = { 0.0f, 0.0f, 0.0f };
-            XrSpace handSpace = newState.inGame.in_game ? m_inGameHandSpaces[side] : m_inMenuHandSpaces[side];
+            newState.shared.poseVelocity[side].linearVelocity = { 0.0f, 0.0f, 0.0f };
+            newState.shared.poseVelocity[side].angularVelocity = { 0.0f, 0.0f, 0.0f };
+            XrSpace handSpace = newState.shared.in_game ? m_inGameHandSpaces[side] : m_inMenuHandSpaces[side];
             checkXRResult(xrLocateSpace(handSpace, m_stageSpace, predictedFrameTime, &spaceLocation), "Failed to get location from controllers!");
             if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 && (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
-                newState.inGame.poseLocation[side] = spaceLocation;
+                newState.shared.poseLocation[side] = spaceLocation;
 
                 if ((spaceLocation.locationFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT) != 0 && (spaceLocation.locationFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT) != 0) {
                     // rotate angular velocity to world space when it's using a buggy runtime
@@ -565,25 +565,38 @@ std::optional<OpenXR::InputState> OpenXR::UpdateActions(XrTime predictedFrameTim
                         spaceVelocity.angularVelocity = { angularVelocity.x, angularVelocity.y, angularVelocity.z };
                     }
 
-                    newState.inGame.poseVelocity[side] = spaceVelocity;
+                    newState.shared.poseVelocity[side] = spaceVelocity;
                 }
             }
         }
     }
-
+    // update shared actions
     XrActionStateGetInfo getInventoryMapInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
-    getInventoryMapInfo.action = newState.inGame.in_game ? m_inGame_inventory_mapAction : m_inMenu_inventory_mapAction;
+    getInventoryMapInfo.action = newState.shared.in_game ? m_inGame_inventory_mapAction : m_inMenu_inventory_mapAction;
     getInventoryMapInfo.subactionPath = XR_NULL_PATH;
-    auto& inventory_mapAction = newState.inGame.in_game ? newState.inGame.inventory_map : newState.inMenu.inventory_map;
+    auto& inventory_mapAction = newState.shared.inventory_map;
     inventory_mapAction = { XR_TYPE_ACTION_STATE_BOOLEAN };
     checkXRResult(xrGetActionStateBoolean(m_session, &getInventoryMapInfo, &inventory_mapAction), "Failed to get inventory_help action value!");
 
-    auto& inventory_mapButtonState = newState.inGame.in_game ? newState.inGame.inventory_mapState : newState.inMenu.inventory_mapState;
+    auto& inventory_mapButtonState = newState.shared.inventory_mapState;
     if (inventory_mapAction.isActive == XR_TRUE) {
         auto buttonPressed = inventory_mapAction.currentState == XR_TRUE;
         CheckButtonState(buttonPressed, inventory_mapButtonState);
     }
 
+    XrActionStateGetInfo getModMenuInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
+    getModMenuInfo.action = m_modMenuAction;
+    getModMenuInfo.subactionPath = XR_NULL_PATH;
+    newState.shared.modMenu = { XR_TYPE_ACTION_STATE_BOOLEAN };
+    checkXRResult(xrGetActionStateBoolean(m_session, &getModMenuInfo, &newState.shared.modMenu), "Failed to get crouch and map action value!");
+
+    auto& modMenuButtonState = newState.shared.modMenuState;
+    if (newState.shared.modMenu.isActive == XR_TRUE) {
+        auto buttonPressed = newState.shared.modMenu.currentState == XR_TRUE;
+        CheckButtonState(buttonPressed, modMenuButtonState);
+    }
+
+    // update in-menu or in-game actions
     if (inMenu) {
         XrActionStateGetInfo getScrollInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
         getScrollInfo.action = m_scrollAction;
@@ -621,7 +634,7 @@ std::optional<OpenXR::InputState> OpenXR::UpdateActions(XrTime predictedFrameTim
         checkXRResult(xrGetActionStateBoolean(m_session, &getLeftGripInfo, &newState.inMenu.leftGrip), "Failed to get left grip action value!");
 
         if (newState.inMenu.leftGrip.currentState == XR_TRUE) {
-            newState.inMenu.lastPickupSide = OpenXR::EyeSide::LEFT;
+            newState.shared.lastPickupSide = OpenXR::EyeSide::LEFT;
         }
 
         XrActionStateGetInfo getRightGripInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
@@ -630,7 +643,7 @@ std::optional<OpenXR::InputState> OpenXR::UpdateActions(XrTime predictedFrameTim
         checkXRResult(xrGetActionStateBoolean(m_session, &getRightGripInfo, &newState.inMenu.rightGrip), "Failed to get right grip action value!");
 
         if (newState.inMenu.rightGrip.currentState == XR_TRUE) {
-            newState.inMenu.lastPickupSide = OpenXR::EyeSide::RIGHT;
+            newState.shared.lastPickupSide = OpenXR::EyeSide::RIGHT;
         }
 
         XrActionStateGetInfo getLeftTriggerInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
@@ -710,18 +723,6 @@ std::optional<OpenXR::InputState> OpenXR::UpdateActions(XrTime predictedFrameTim
         if (newState.inGame.useRune_dpadMenu.isActive == XR_TRUE) {
             auto buttonPressed = newState.inGame.useRune_dpadMenu.currentState == XR_TRUE;
             CheckButtonState(buttonPressed, useRuneButtonState);
-        }
-
-        XrActionStateGetInfo getModMenuInfo = { XR_TYPE_ACTION_STATE_GET_INFO };
-        getModMenuInfo.action = m_modMenuAction;
-        getModMenuInfo.subactionPath = XR_NULL_PATH;
-        newState.inGame.modMenu = { XR_TYPE_ACTION_STATE_BOOLEAN };
-        checkXRResult(xrGetActionStateBoolean(m_session, &getModMenuInfo, &newState.inGame.modMenu), "Failed to get crouch and map action value!");
-
-        auto& modMenuButtonState = newState.inGame.modMenuState;
-        if (newState.inGame.modMenu.isActive == XR_TRUE) {
-            auto buttonPressed = newState.inGame.modMenu.currentState == XR_TRUE;
-            CheckButtonState(buttonPressed, modMenuButtonState);
         }
 
         XrActionStateGetInfo getUseRightItemInfo = { XR_TYPE_ACTION_STATE_GET_INFO };

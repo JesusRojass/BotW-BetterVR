@@ -410,12 +410,12 @@ void RND_Renderer::ImGuiOverlay::ProcessInputs(OpenXR::InputState& inputs) {
         return;
 
     auto& io = ImGui::GetIO();
-    bool inGame = inputs.inGame.in_game;
+    bool inGame = inputs.shared.in_game;
 
     bool backDown;
     bool confirmDown;
     XrActionStateVector2f stick;
-    if (inputs.inGame.in_game) {
+    if (inputs.shared.in_game) {
         stick = inputs.inGame.move;
         backDown = inputs.inGame.jump_cancel.currentState;
         confirmDown = inputs.inGame.run_interact.currentState;

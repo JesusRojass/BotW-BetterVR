@@ -24,7 +24,7 @@ public:
         bool isMetaSimulator;
     } m_capabilities = {};
 
-    union InputState {
+    struct InputState {
         struct ButtonState {
             enum class Event {
                 None,
@@ -51,7 +51,7 @@ public:
             }
         };
 
-        struct InGame {
+        struct Shared {
             bool in_game = true;
             XrTime inputTime;
             std::optional<EyeSide> lastPickupSide = std::nullopt;
@@ -61,13 +61,16 @@ public:
             std::array<XrSpaceVelocity, 2> poseVelocity;
             std::array<XrSpaceLocation, 2> hmdRelativePoseLocation;
 
-            // shared
-            XrActionStateBoolean crouch_scope;
-            ButtonState crouch_scopeState;
             XrActionStateBoolean inventory_map;
             ButtonState inventory_mapState;
+            XrActionStateBoolean modMenu;
+            ButtonState modMenuState;
+        } shared;
 
-            // unique
+        struct InGame {
+            XrActionStateBoolean crouch_scope;
+            ButtonState crouch_scopeState;
+
             XrActionStateVector2f move;
             XrActionStateVector2f camera;
 
@@ -77,8 +80,6 @@ public:
             ButtonState runState;
             XrActionStateBoolean useRune_dpadMenu;
             ButtonState useRune_runeMenuState;
-            XrActionStateBoolean modMenu; //imgui mod menu
-            ButtonState modMenuState;
 
             XrActionStateBoolean useLeftItem;
             XrActionStateBoolean useRightItem;
@@ -88,20 +89,6 @@ public:
             std::array<ButtonState, 2> grabState; // LEFT/RIGHT
         } inGame;
         struct InMenu {
-            bool in_game = false;
-            XrTime inputTime;
-            std::optional<EyeSide> lastPickupSide = std::nullopt;
-
-            std::array<XrActionStatePose, 2> pose;
-            std::array<XrSpaceLocation, 2> poseLocation;
-            std::array<XrSpaceVelocity, 2> poseVelocity;
-            std::array<XrSpaceLocation, 2> hmdRelativePoseLocation;
-
-            // shared
-            XrActionStateBoolean inventory_map;
-            ButtonState inventory_mapState;
-
-            // unique
             XrActionStateVector2f scroll;
             XrActionStateVector2f navigate;
 

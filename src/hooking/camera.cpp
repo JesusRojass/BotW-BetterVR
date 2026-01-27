@@ -887,7 +887,7 @@ void CemuHooks::hook_FixLadder(PPCInterpreter_t* hCPU) {
 
     auto input = VRManager::instance().XR->m_input.load();
 
-    if (input.inGame.in_game && s_isLadderClimbing == 0) {
+    if (input.shared.in_game && s_isLadderClimbing == 0) {
         return;
     }
 

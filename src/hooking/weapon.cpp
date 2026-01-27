@@ -259,7 +259,7 @@ void CemuHooks::hook_ChangeWeaponMtx(PPCInterpreter_t* hCPU) {
         auto input = VRManager::instance().XR->m_input.load();
         auto dropSide = input.inGame.drop_weapon[side];
 
-        if (input.inGame.in_game && dropSide && isDroppable(targetActor.name.getLE())) {
+        if (input.shared.in_game && dropSide && isDroppable(targetActor.name.getLE())) {
             Log::print<INFO>("Dropping weapon {} with type of {} due to double press on grab button", targetActor.name.getLE().c_str(), (uint32_t)targetActor.type.getLE());
             hCPU->gpr[11] = 1;
             hCPU->gpr[9] = 1;
@@ -387,14 +387,14 @@ void CemuHooks::hook_EnableWeaponAttackSensor(PPCInterpreter_t* hCPU) {
 
     //Log::print("!! Running weapon analysis for {}", heldIndex);
 
-    auto state = VRManager::instance().XR->m_input.load();
+    auto inputs = VRManager::instance().XR->m_input.load();
     auto headset = VRManager::instance().XR->GetRenderer()->GetMiddlePose();
     if (!headset.has_value()) {
         return;
     }
 
     m_motionAnalyzers[heldIndex].ResetIfWeaponTypeChanged(weaponType);
-    m_motionAnalyzers[heldIndex].Update(state.inGame.poseLocation[heldIndex], state.inGame.poseVelocity[heldIndex], headset.value(), state.inGame.inputTime);
+    m_motionAnalyzers[heldIndex].Update(inputs.shared.poseLocation[heldIndex], inputs.shared.poseVelocity[heldIndex], headset.value(), inputs.shared.inputTime);
 
     // Use the analysed motion to determine whether the weapon is swinging or stabbing, and whether the attackSensor should be active this frame
     bool CHEAT_alwaysEnableWeaponCollision = false;
