@@ -942,7 +942,7 @@ stw r5, 0x14(r1)
 
 lis r3, currentEyeSide@ha
 lwz r3, currentEyeSide@l(r3)
-cmpwi r3, 0
+cmpwi r3, 1
 beq exit_OnlyRunWorldUpdateJobOnce
 
 lis r3, FixedSizeJQ_enque_job@ha
@@ -960,4 +960,40 @@ addi r1, r1, 0x20
 mtlr r0
 blr
 
-;0x031FBC84 = bla OnlyRunWorldUpdateJobOnce
+0x031FBC84 = bla OnlyRunWorldUpdateJobOnce
+
+; ===================================================
+
+0x0317A128 = ksys_act_Awareness_calc:
+
+; run awareness job once
+
+OnlyRunAwarenessJobOnce:
+mflr r0
+stwu r1, -0x20(r1)
+stw r0, 0x24(r1)
+stw r3, 0x1C(r1)
+stw r4, 0x18(r1)
+stw r5, 0x14(r1)
+
+lis r3, currentEyeSide@ha
+lwz r3, currentEyeSide@l(r3)
+cmpwi r3, 1
+beq exit_OnlyRunAwarenessJobOnce
+
+lis r3, ksys_act_Awareness_calc@ha
+addi r3, r3, ksys_act_Awareness_calc@l
+mtctr r3
+lwz r3, 0x1C(r1)
+bctrl
+
+exit_OnlyRunAwarenessJobOnce:
+lwz r5, 0x14(r1)
+lwz r4, 0x18(r1)
+lwz r3, 0x1C(r1)
+lwz r0, 0x24(r1)
+addi r1, r1, 0x20
+mtlr r0
+blr
+
+0x031FDE3C = ba OnlyRunAwarenessJobOnce
