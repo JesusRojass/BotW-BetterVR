@@ -9,7 +9,7 @@ It currently supports the following features:
 * Gestures to equip and throw weapons.
 * Use motion controls to interact with the world to solve puzzles or start fires.
 * Large mod compatibility. BetterVR only modifies the code and no game data. Most other mods should be compatible.
-* Optional third-person mode (though its a bit broken at the moment).
+* Optional third-person mode.
 
 ### Requirements
 
@@ -21,7 +21,7 @@ While more integrated solutions are being found out, there's probably ways to se
 
 #### Other Requirements:
 
-* A gaming PC with a CPU that is good at single-threaded workloads (a recent Intel i5 or Ryzen 5 are recommended at least)!
+* A gaming PC with a CPU that is good at single-threaded workloads (a recent Intel i5 or Ryzen 5 are recommended at least)! The GPU matters a bit, but the CPU is the bottleneck here.
 
 * A legal copy of BotW for the Wii U.
 
@@ -32,46 +32,23 @@ While more integrated solutions are being found out, there's probably ways to se
 
 * A recent Cemu version. Only Cemu 2.6 is tested to work.
 
-> [!WARNING]
-> ### Current Limitations & Known Issues
-> Since this is an unofficial mod and not a VR port, some things do not work perfectly (yet).  
-> Some issues will be much easier to fix then others.  
-> The game is fully tested to be completeable, from start to finish.
-> 
-> If you want to help to improve the mod and tackle some of these issues, reach out in the ZBW Development Channel in the [Flat2VR Discord](https://discord.com/invite/flat2vr) for extra info, context and requirements!
->
-> **Important Issues:**
-> * Weapons might deregister rarely (after breaking?). You might have to drop and pick it up again.
-> * ~~Gravity is higher. Jumping isn't affected, but some shrines might require creative solutions/glitches for now.~~ This is fixed now!
-> * ~~Third-person mode (and cutscenes) often has the player being partially/largely invisible.~~ This is fixed now!
-> * ~~Climbing ladders requires looking away with the camera using your controller stick.~~ This is fixed now!
-> * ~~Some towers can't be unlocked and cause the cutscene to softlock.~~ This is fixed now!
-> * ~~Our AMD GPU system has a crash after the load screen, which we're working on fixing.~~ This is fixed now!
-> * ~~**Weapon Glitch:** Sometimes weapons will stop registering hits on enemies.~~
+### Current Limitations & Known Issues
 
-**Audio & Visuals**
-- ~~Slight audio crackling may occur when loading the game or opening menus quickly.~~ This is fixed now!
-- The game becomes slowly brighter. Seems to happen (more?) after each loading screen or shrine?
-- Some voice-acted cutscenes or timed text cutscenes are sped-up and have overlapping text/voices.
-- While inside the Divine Beasts, skyboxes appear to sway with the camera more then intended.
-- Stamina wheel is weirdly positioned.
+- Stamina wheel is difficult to see after any sorts of camera rotation.
 - There's a very small chance that the screen stays black after exiting any menus, which requires restarting the game to continue.
-
-**Gameplay & Combat**
-- ~~Flurry Rush can be triggered but does not work.~~ This is fixed now!
-- ~~Motion control shrines aren't supported yet. There's only a few of these in the game so mark them on your map until its fixed.~~
 - Bow Aiming is done via a crosshair on the VR headset. Bow support might be added at some point.
-- Enemies will ocassionally not detect you
 - No roomscale support. You can freely move around your room, but enemies and physics will use your center point. 
-
-**Traversal & Physics**
-- ~~Exiting the water while swimming can be difficult at certain angles. Swim dashing sometimes doesn't work.~~ This is now fixed!
 - Magnesis & Stasis aim is off-center at far distances. Point your gaze to the **right** of the object to highlight it.
-- Shrine exits require looking at the bottom of the altar from a slight distance before the prompt might appear.
 - Climbing ladders require jumping up the ladder to go up and you have to look at the ladder.
 - You can get stuck behind ladders sometimes, especially when you stop moving at the very top of the ladder while climbing down. So keep moving at the start!
+- Bombs, barrels etc. are thrown at a weird angle. 
+- It'll lack some comfort options for now, like a left-handed mode or snap turning. These will be added later.
 
 ### Mod Installation
+
+> [!TIP]
+> Meta/Oculus Link has terrible frame interpolation that will make game appear to run much worse while also making the grass and arms glitchy, even while using a cable.
+> Its HIGHLY recommended to use [ALVR](https://github.com/alvr-org/ALVR) (free, both wired and wireless), [Virtual Desktop](https://www.meta.com/en-gb/experiences/virtual-desktop/2017050365004772/) (paid, wireless) or [Steam Link](https://www.meta.com/en-gb/experiences/steam-link/5841245619310585/) (free, wireless) instead for Meta Quest headsets.
 
 1. Download the latest release of the mod from the [Releases](https://github.com/Crementif/BotW-BetterVR/releases) page.
 
@@ -81,6 +58,7 @@ While more integrated solutions are being found out, there's probably ways to se
 3. Open Cemu normally through the `Cemu.exe` (not the .bat file!).
     - Cemu's window title should state Cemu 2.6 or newer. Any older version isn't supported.
     - The game should say V208 inside the update column in Cemu's game list. Otherwise it's outdated/not updated, and won't work.
+    - Under `Debug`, disable `Accurate Barriers (Vulkan)` for more performance.
     - Go to `Options`->`General Settings`, and then under the `Graphics` tab make sure that you're using Vulkan, that the right GPU is selected and that VSync is turned off.
     
     If all that is true, continue to the next step by closing the settings window and then Cemu entirely. Otherwise, fix those issues before continuing.
@@ -88,8 +66,7 @@ While more integrated solutions are being found out, there's probably ways to se
 4. Double-click on `BetterVR LAUNCH CEMU IN VR.bat` to start Cemu. This'll install the graphic pack automatically to the right folder.
 
 5. Go to `Options`-> `Graphic packs`-> `The Legend of Zelda: Breath of the Wild` and make sure that the graphic pack named `BetterVR` is enabled.
-   This is ALSO where you can change any VR settings like the first/third-person mode etc.  
-   **You'll also want to enable the FPS++ graphic pack, or else the game will crash!**  
+   **You'll also want to enable the FPS++ graphic pack under the Mods category, or else the game will crash!**  
    **While you're inside the graphic packs menu, make sure that you've clicked on the Download Community Graphic Packs button to update your graphic packs!**  
    **You can't change the BetterVR options while you're in-game.**  
 
@@ -106,10 +83,17 @@ From now on you can play the game in VR by just starting the `BetterVR LAUNCH CE
 If you want to undo the installation (temporarily) to play the game without VR, use the `BetterVR UNINSTALL.bat` file.  
 You can just use the `BetterVR LAUNCH CEMU IN VR.bat` file to reinstall and start the VR mod again.
 
+
 ### Controls
 
-<img width="2366" height="3423" alt="image" src="https://github.com/user-attachments/assets/ff44b2d8-ef64-417f-8f72-f7ff887f00c2" />
+**You can now view the controls in-game now by opening the BetterVR menu by holding the X button on your left VR controller.**
+With Valve Index Controllers you can use the A button.
+For Xbox/Playstation etc. controllers, long press the Start button and use the mouse for changing settings.
 
+You can find the controller image here (click to enlarge):  
+<a href="https://raw.githubusercontent.com/Crementif/BotW-BetterVR/refs/heads/main/resources/controller_help.png">
+<img src="https://raw.githubusercontent.com/Crementif/BotW-BetterVR/refs/heads/main/resources/controller_help.png" width="540">
+</a>
 
 ---
 
@@ -164,8 +148,8 @@ Acudofy: Sword & stab analysis system
 Holydh: Developed the input systems  
 leoetlino: For the [BotW Decomp project](https://github.com/zeldaret/botw), which was very useful  
 Exzap: Technical support and optimization help  
-Mako Marci: Edited the trailer  
-Tim, Mako Marci, Solarwolf07 & Elliott Tate: Helped with testing, recording, feedback and support  
+Mako Marci: Edited the trailer, made the logo and controller guide  
+Tim, Mako Marci, Solarwolf07, Elliott Tate & Derra: Helped with testing, recording, feedback and support  
 
 ### Licenses
 
