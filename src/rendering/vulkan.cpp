@@ -49,6 +49,35 @@ uint32_t RND_Vulkan::FindMemoryType(uint32_t memoryTypeBitsRequirement, VkMemory
 }
 
 
+VkResult VRLayer::VkDeviceOverrides::GetPhysicalDeviceSurfacePresentModesKHR(const vkroots::VkDeviceDispatch& pDispatch, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes) {
+    // check all supported present modes
+    uint32_t testPresentModes = 0;
+    VkResult result = pDispatch.GetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &testPresentModes, VK_NULL_HANDLE);
+
+    std::vector<VkPresentModeKHR> supportedPresentModes;
+    supportedPresentModes.resize(testPresentModes);
+
+    result = pDispatch.GetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &testPresentModes, supportedPresentModes.data());
+
+    checkAssert(result == VK_SUCCESS, "Failed to get physical device surface present modes!");
+
+    // if VK_PRESENT_MODE_IMMEDIATE_KHR is present, always just return that
+    for (uint32_t i = 0; i < testPresentModes; i++) {
+        if (supportedPresentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+            // immediate is supported, only return 1 mode
+            if (pPresentModes != VK_NULL_HANDLE) {
+                pPresentModes[0] = VK_PRESENT_MODE_IMMEDIATE_KHR;
+            }
+            else {
+                *pPresentModeCount = 1;
+            }
+        }
+    }
+
+    // otherwise, we just try and use whatever mode is available
+    return pDispatch.GetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount, pPresentModes);
+}
+
 VkResult VRLayer::VkDeviceOverrides::CreateSwapchainKHR(const vkroots::VkDeviceDispatch& pDispatch, VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain) {
     return pDispatch.CreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain);
 }
