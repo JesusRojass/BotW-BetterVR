@@ -500,14 +500,14 @@ void processLeftHandInGameInput(
     //}
     
     if (isGrabPressed) {
-        // Handle grab action
-        if (!gameState.prevent_grab_inputs) {
+        // Handle grab action. is_riding_mount check added to prevent conflict with master cycle brake function
+        if (!gameState.prevent_grab_inputs && !gameState.is_riding_mount) {
             buttonHold |= VPAD_BUTTON_A;
         }
     }
 
-    // Master Sword QTE fix
-    if (isHandNotOverAnySlot(leftGesture) && isGrabPressedLong) {
+    // Master Sword QTE fix. is_riding_mount check to prevent conflict with master cycle brake function
+    if (isHandNotOverAnySlot(leftGesture) && isGrabPressedLong && !gameState.is_riding_mount) {
         if (!gameState.prevent_grab_inputs) {
             buttonHold |= VPAD_BUTTON_A;
         }
@@ -892,7 +892,7 @@ XrTime prev_sample = 0;
 
 void updatePreviousValues(OpenXR::GameState& gameState, uint32_t& buttonHold, HandGestureState& leftGesture, HandGestureState& rightGesture, XrTime inputTime)
 {
-        // (re)set values for next frame
+    // (re)set values for next frame
     gameState.previous_button_hold = buttonHold;
     gameState.was_in_game = gameState.in_game;
     if (gameState.in_game) {
@@ -1047,8 +1047,13 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
         }
         else if (gameState.is_riding_mount)
         {
+            // A button to interact when riding a mount
             newXRBtnHold |= mapXRButtonToVpad(inputs.inGame.run_interact, VPAD_BUTTON_A);
-            newXRBtnHold |= mapXRButtonToVpad(inputs.inGame.useLeftItem, VPAD_BUTTON_B);
+            // grabs to accelerate and brake when riding master cycle
+            if (inputs.inGame.grab[1].currentState)
+                newXRBtnHold |= VPAD_BUTTON_A;
+            if (inputs.inGame.grab[0].currentState)
+                newXRBtnHold |= VPAD_BUTTON_B;
         }
         else {
             if (inputs.inGame.runState.lastEvent == ButtonState::Event::LongPress) {
