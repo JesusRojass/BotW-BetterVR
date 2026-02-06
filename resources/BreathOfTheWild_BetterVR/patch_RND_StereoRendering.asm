@@ -29,7 +29,6 @@ currentFrameCounter:
 0x031FAF00 = calculateUIMaybe:
 0x031FA97C = jumpToFPSPlusPlus:
 
-
 ; sead::GameFrameworkCafe::presentAndDrawDone outputs the frame to the regular screen. We only need that for the right eye.
 ; this is a simplified version for the left eye, that does enough to keep the game happy but doesn't actually present anything.
 simplified_sead_GameFrameworkCafe_presentAndDrawDone:
@@ -182,7 +181,7 @@ lwz r12, 0(r30)
 lwz r12, 0x10C(r12)
 mtctr r12
 mr r3, r30
-bl simplified_sead_GameFrameworkCafe_presentAndDrawDone
+bl simplified_sead_GameFrameworkCafe_presentAndDrawDone ; run UpdateGPU commands without actually presenting or GX2DrawDone
 ;bctrl ; sead__GameFrameworkCafe__presentAndDrawDone
 
 ; ========================================================================
@@ -195,11 +194,12 @@ mtctr r0
 mr r3, r30
 bctrl ; sead__GameFrameworkCafe__procDraw
 
-; note: doesn't seem to be necessary
+; this is a replacement for a GX2DrawDone that prevents command buffers from being corrupted
 bl storeLastSubmittedTimeStamp
 bl waitForLastSubmittedTimeStamp
 ;bl import.gx2.GX2DrawDone
 
+; note: doesn't seem to be necessary
 stallDuringLoadingScreens_one:
 lis r3, FadeProgress__sInstance@ha
 lwz r3, FadeProgress__sInstance@l(r3)
