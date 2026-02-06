@@ -1,4 +1,4 @@
-﻿#include "hooking/cemu_hooks.h"
+#include "hooking/cemu_hooks.h"
 #include "hooking/entity_debugger.h"
 #include "instance.h"
 #include "utils/vulkan_utils.h"
@@ -42,7 +42,7 @@ void SetupImGuiStyle() {
     style.GrabMinSize = 10.0f;
     style.GrabRounding = 4.0f;
     style.TabRounding = 4.0f;
-    style.TabBorderSize = 0.5f;
+    style.TabBorderSize = 0.0f;
     //style.TabMinWidthForCloseButton = 0.0f;
     style.ColorButtonPosition = ImGuiDir_Right;
     style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
@@ -520,7 +520,7 @@ void RND_Renderer::ImGuiOverlay::Render(long frameIdx, bool renderBackground) {
 }
 
 constexpr uint8_t TOTAL_TABS = 4;
-void RND_Renderer::ImGuiOverlay::ProcessInputs(OpenXR::InputState& inputs) {
+void RND_Renderer::ImGuiOverlay::ProcessInputs(OpenXR::InputState& inputs, const VPADStatus& vpadStatus) {
     auto& isMenuOpen = VRManager::instance().XR->m_isMenuOpen;
     if (!isMenuOpen)
         return;
@@ -549,22 +549,15 @@ void RND_Renderer::ImGuiOverlay::ProcessInputs(OpenXR::InputState& inputs) {
         pageRight = inputs.inMenu.rightTrigger.currentState && inputs.inMenu.rightTrigger.changedSinceLastSync;
     }
 
-    VRManager::instance().XR->m_forceTabChange = false;
-    if (pageLeft || pageRight) {
-        auto& currTab = VRManager::instance().XR->m_currMenuTab;
-        uint8_t prevTab = currTab;
-        if (pageLeft) {
-            currTab = (currTab - 1 + TOTAL_TABS) % TOTAL_TABS;
-        }
-        if (pageRight) {
-            currTab = (currTab + 1) % TOTAL_TABS;
-        }
+    uint32_t hold = vpadStatus.hold.getLE();
+    backDown |= (hold & VPAD_BUTTON_B) != 0;
+    confirmDown |= (hold & VPAD_BUTTON_A) != 0;
 
-        if (prevTab != currTab) {
-            VRManager::instance().XR->m_forceTabChange = true;
-        }
-    }
-
+    static bool wasBDown = false;
+    bool isBDown = (hold & VPAD_BUTTON_B) != 0;
+    bool bPressed = isBDown && !wasBDown;
+    wasBDown = isBDown;
+    
     // imgui wants us to only have state changes, and we also want to refiring DPAD inputs (used for moving the menu cursor) when held down
     constexpr float THRESHOLD_PRESS = 0.5f;
     constexpr float THRESHOLD_RELEASE = 0.3f;
@@ -596,34 +589,54 @@ void RND_Renderer::ImGuiOverlay::ProcessInputs(OpenXR::InputState& inputs) {
             if (currentTime - lastRefireTime[idx] >= refireDelay || lastRefireTime[idx] == 0.0) {
                 io.AddKeyEvent(key, true);
                 lastRefireTime[idx] = currentTime;
+                return true;
             }
             else {
                 io.AddKeyEvent(key, false);
+                return false;
             }
         }
         else {
             io.AddKeyEvent(key, false);
             lastRefireTime[idx] = 0.0;
+            return false;
         }
     };
 
-    applyInput(ImGuiKey_GamepadDpadUp, updateDpadState(0, stick.currentState.y, true), VERTICAL_REFIRE_DELAY, 0);
-    applyInput(ImGuiKey_GamepadDpadDown, updateDpadState(1, stick.currentState.y, false), VERTICAL_REFIRE_DELAY, 1);
-    applyInput(ImGuiKey_GamepadDpadLeft, updateDpadState(2, stick.currentState.x, false), HORIZONTAL_REFIRE_DELAY, 2);
-    applyInput(ImGuiKey_GamepadDpadRight, updateDpadState(3, stick.currentState.x, true), HORIZONTAL_REFIRE_DELAY, 3);
+    applyInput(ImGuiKey_GamepadDpadUp, updateDpadState(0, stick.currentState.y, true) || ((hold & VPAD_BUTTON_UP) != 0), VERTICAL_REFIRE_DELAY, 0);
+    applyInput(ImGuiKey_GamepadDpadDown, updateDpadState(1, stick.currentState.y, false) || ((hold & VPAD_BUTTON_DOWN) != 0), VERTICAL_REFIRE_DELAY, 1);
+    applyInput(ImGuiKey_GamepadDpadLeft, updateDpadState(2, stick.currentState.x, false) || ((hold & VPAD_BUTTON_LEFT) != 0), HORIZONTAL_REFIRE_DELAY, 2);
+    applyInput(ImGuiKey_GamepadDpadRight, updateDpadState(3, stick.currentState.x, true) || ((hold & VPAD_BUTTON_RIGHT) != 0), HORIZONTAL_REFIRE_DELAY, 3);
 
     // convert B/A to ImGui gamepad face buttons
     applyInput(ImGuiKey_GamepadFaceRight, backDown, VERTICAL_REFIRE_DELAY, 4);
     applyInput(ImGuiKey_GamepadFaceDown, confirmDown, VERTICAL_REFIRE_DELAY, 5);
 
     // triggers for tab switching
-    applyInput(ImGuiKey_GamepadL1, pageLeft, VERTICAL_REFIRE_DELAY, 6);
-    applyInput(ImGuiKey_GamepadR1, pageRight, VERTICAL_REFIRE_DELAY, 7);
+    bool l1 = applyInput(ImGuiKey_GamepadL1, pageLeft || ((hold & VPAD_BUTTON_L) != 0), VERTICAL_REFIRE_DELAY, 6);
+    bool r1 = applyInput(ImGuiKey_GamepadR1, pageRight || ((hold & VPAD_BUTTON_R) != 0), VERTICAL_REFIRE_DELAY, 7);
+
+    VRManager::instance().XR->m_forceTabChange = false;
+    if (l1 || r1) {
+        auto& currTab = VRManager::instance().XR->m_currMenuTab;
+        uint8_t prevTab = currTab;
+        if (l1) {
+            currTab = (currTab - 1 + TOTAL_TABS) % TOTAL_TABS;
+        }
+        if (r1) {
+            currTab = (currTab + 1) % TOTAL_TABS;
+        }
+
+        if (prevTab != currTab) {
+            VRManager::instance().XR->m_forceTabChange = true;
+        }
+    }
 
     // prevent exiting menu if a popup or field is being edited
     if (ImGui::IsAnyItemActive() && ImGui::IsPopupOpen(NULL, ImGuiPopupFlags_AnyPopupId + ImGuiPopupFlags_AnyPopupLevel)) {
         return;
     }
+
 
     // if no inputs or popup is open, allow closing the menu using the cancel/back button
     bool shouldClose = false;
@@ -639,7 +652,7 @@ void RND_Renderer::ImGuiOverlay::ProcessInputs(OpenXR::InputState& inputs) {
         }
     }
 
-    if (shouldClose) {
+    if (shouldClose || bPressed) {
         VRManager::instance().XR->m_isMenuOpen = false;
     }
 }
@@ -698,7 +711,7 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
     ImVec2 fullWindowWidth = ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
     ImVec2 windowWidth = fullWindowWidth * ImVec2(0.75f, 1.0f);
 
-    // Layout helper
+    // Layout helpers
     auto DrawSettingRow = [&](const char* label, auto drawWidget) {
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(label);
@@ -711,6 +724,16 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
         ImGui::PushItemWidth(windowWidth.x * 0.50f);
         drawWidget();
         ImGui::PopItemWidth();
+    };
+
+    bool setTab = VRManager::instance().XR->m_forceTabChange;
+    uint8_t selectedTab = VRManager::instance().XR->m_currMenuTab;
+
+    auto DrawStyledTab = [&](const char* label, uint32_t tabIdx, ImGuiTabItemFlags extraFlags = ImGuiTabItemFlags_None) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImGui::GetStyle().FramePadding + ImVec2(0, 2.0f));
+        auto tabBar = ImGui::BeginTabItem(label, nullptr, ((setTab && selectedTab == tabIdx) ? ImGuiTabItemFlags_SetSelected : 0) | extraFlags);
+        ImGui::PopStyleVar();
+        return tabBar;
     };
 
     ImGui::SetNextWindowPos(fullWindowWidth * 0.5f, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -726,14 +749,12 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
         ImGui::Dummy(ImVec2(10.0f, 0.0f));
 
         float footerHeight = ImGui::GetFrameHeight() * 1.5f;
-        if (ImGui::BeginChild("Content", ImVec2(0, -footerHeight), ImGuiChildFlags_None, ImGuiWindowFlags_NoBackground)) {
-            bool setTab = VRManager::instance().XR->m_forceTabChange;
-            uint8_t selectedTab = VRManager::instance().XR->m_currMenuTab;
+        if (ImGui::BeginChild("Content", ImVec2(0, -footerHeight), ImGuiChildFlags_NavFlattened, ImGuiWindowFlags_NoBackground)) {
 
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImGui::GetStyle().FramePadding + ImVec2(0, 2.0f));
             if (ImGui::BeginTabBar("HelpMenuTabs")) {
-                if (ImGui::BeginTabItem(ICON_KI_COG "Settings", nullptr, (setTab && selectedTab == 0) ? ImGuiTabItemFlags_SetSelected : 0)) {
-                    auto& settings = GetSettings();
-
+                ImGui::PopStyleVar();
+                if (DrawStyledTab(ICON_KI_COG "Settings", 0)) {
                     ImGui::Separator();
                     int cameraMode = (int)settings.cameraMode.load();
                     DrawSettingRow("Camera Mode", [&]() {
@@ -831,6 +852,32 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
                         ImGui::Text("");
                     }
 
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive));
+                    ImGui::Text("Input");
+                    ImGui::PopStyleColor();
+                    if (cameraMode == 1) {
+                        float deadzone = settings.stickDeadzone;
+                        DrawSettingRow("Stick Deadzone", [&]() {
+                            if (ImGui::SliderFloat("##StickDeadzone", &deadzone, 0.0f, 0.5f, "%.2f")) {
+                                settings.stickDeadzone = deadzone;
+                                changed = true;
+                            }
+                        });
+
+                        float threshold = settings.axisThreshold;
+                        DrawSettingRow("Axis Threshold", [&]() {
+                            if (ImGui::SliderFloat("##AxisThreshold", &threshold, 0.1f, 0.9f, "%.2f")) {
+                                settings.axisThreshold = threshold;
+                                changed = true;
+                            }
+                        });
+                    }
+                    else {
+                        ImGui::Text("");
+                    }
+
                     if (ImGui::CollapsingHeader("Advanced Settings")) {
                         bool crop16x9 = settings.cropFlatTo16x9;
                         DrawSettingRow("Crop VR Image To 16:9 For Cemu Window", [&]() {
@@ -868,7 +915,7 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
                     ImGui::EndTabItem();
                 }
 
-                if (ImGui::BeginTabItem(ICON_KI_INFO_CIRCLE " Help & Controller Guide", nullptr, (setTab && selectedTab == 1) ? ImGuiTabItemFlags_SetSelected : 0)) {
+                if (DrawStyledTab(ICON_KI_INFO_CIRCLE " Help & Controller Guide", 1)) {
                     ImGui::PushItemWidth(windowWidth.x * 0.5f);
 
                     for (const auto& imagePage : m_helpImagePages) {
@@ -889,7 +936,7 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
                     ImGui::EndTabItem();
                 }
 
-                if (ImGui::BeginTabItem(ICON_KI_PODIUM " FPS Overlay", nullptr, (setTab && selectedTab == 2) ? ImGuiTabItemFlags_SetSelected : 0)) {
+                if (DrawStyledTab(ICON_KI_PODIUM " FPS Overlay", 2)) {
                     ImGui::Dummy(ImVec2(0.0f, 10.0f));
 
                     auto& settings = GetSettings();
@@ -931,7 +978,7 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
                     ImGui::EndTabItem();
                 }
 
-                if (ImGui::BeginTabItem(ICON_KI_HEART " Credits", nullptr, (setTab && selectedTab == 3) ? ImGuiTabItemFlags_SetSelected : 0)) {
+                if (DrawStyledTab(ICON_KI_HEART " Credits", 3)) {
                     ImGui::SeparatorText("Project Links");
                     ImGui::TextLinkOpenURL(ICON_KI_GITHUB " https://github.com/Crementif/BotW-BetterVR");
                     ImGui::Text("");
@@ -963,24 +1010,29 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
 
                 ImGui::EndTabBar();
             }
-            ImGui::EndChild();
-
-            ImGui::Separator();
-            {
-                ImGui::Spacing();
-                const char* navText = ICON_KI_STICK_LEFT_TOP " Navigate      " ICON_KI_BUTTON_A " Select      " ICON_KI_BUTTON_B " Exit      " ICON_KI_BUTTON_L " " ICON_KI_BUTTON_R " Tabs";
-                float textWidth = ImGui::CalcTextSize(navText).x;
-                float availW = ImGui::GetContentRegionAvail().x;
-                if (availW > textWidth) {
-                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availW - textWidth) * 0.5f);
-                }
-                ImGui::TextUnformatted(navText);
+            else {
+                ImGui::PopStyleVar();
             }
+            ImGui::EndChild();
 
             if (changed) {
                 ImGui::SaveIniSettingsToDisk("BetterVR_settings.ini");
             }
         }
+
+        ImGui::Unindent(10.0f);
+        ImGui::Separator();
+        {
+            ImGui::Spacing();
+            const char* navText = ICON_KI_STICK_LEFT_TOP " Navigate      " ICON_KI_BUTTON_A " Select      " ICON_KI_BUTTON_B " Exit      " ICON_KI_BUTTON_L " " ICON_KI_BUTTON_R " Tabs";
+            float textWidth = ImGui::CalcTextSize(navText).x;
+            float availW = ImGui::GetContentRegionAvail().x;
+            if (availW > textWidth) {
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availW - textWidth) * 0.5f);
+            }
+            ImGui::TextUnformatted(navText);
+        }
+
         ImGui::End();
         ImGui::PopStyleVar();
     }

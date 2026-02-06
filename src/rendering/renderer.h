@@ -183,7 +183,7 @@ public:
         void Render(long frameIdx, bool renderBackground);
         void DrawAndCopyToImage(VkCommandBuffer cb, VkImage destImage, long frameIdx);
         void DrawHelpMenu();
-        void ProcessInputs(OpenXR::InputState& inputs);
+        void ProcessInputs(OpenXR::InputState& inputs, const VPADStatus& vpadStatus);
         int GetHelpImagePagesCount() const { return m_helpImagePages.size(); };
 
     private:

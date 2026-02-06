@@ -2,15 +2,14 @@
 #include "../instance.h"
 #include "openxr_motion_bridge.h"
 
-constexpr float AXIS_THRESHOLD = 0.5f;
-constexpr float HOLD_THRESHOLD = 0.1f;
 
 Direction getJoystickDirection(const XrVector2f& stick)
 {
-    if (stick.y >= AXIS_THRESHOLD)       return Direction::Up;
-    if (stick.y <= -AXIS_THRESHOLD)      return Direction::Down;
-    if (stick.x <= -AXIS_THRESHOLD)      return Direction::Left;
-    if (stick.x >= AXIS_THRESHOLD)       return Direction::Right;
+    const float threshold = GetSettings().axisThreshold;
+    if (stick.y >= threshold)       return Direction::Up;
+    if (stick.y <= -threshold)      return Direction::Down;
+    if (stick.x <= -threshold)      return Direction::Left;
+    if (stick.x >= threshold)       return Direction::Right;
 
     return Direction::None;
 }
@@ -44,6 +43,7 @@ void spreadWeaponDetectionOverFrames(OpenXR::GameState& gameState) {
         gameState.left_hand_equip_type_change_requested_over_frames = 0;
     }
 }
+
 
 struct HandGestureState {
     bool isBehindHead;
@@ -823,19 +823,19 @@ void processInputPrevention(OpenXR::GameState& gameState, std::chrono::steady_cl
         gameState.prevent_grab_inputs = false;
 }
 
-void processModMenuInput(std::atomic_bool& isMenuOpen, OpenXR::InputState& inputs, RND_Renderer::ImGuiOverlay* imguiOverlay, XrActionStateVector2f& leftStickSource, XrActionStateVector2f& rightStickSource, Direction& leftJoystickDir, Direction& rightJoystickDir)
+void processModMenuInput(std::atomic_bool& isMenuOpen, OpenXR::InputState& inputs, VPADStatus& vpadInputs, RND_Renderer::ImGuiOverlay* imguiOverlay, XrActionStateVector2f& leftStickSource, XrActionStateVector2f& rightStickSource, Direction& leftJoystickDir, Direction& rightJoystickDir)
 {
-    // toggleable help menu
     if (inputs.shared.modMenuState.lastEvent == ButtonState::Event::LongPress && inputs.shared.modMenuState.longFired_actedUpon) {
         isMenuOpen = !isMenuOpen;
         inputs.shared.modMenuState.longFired_actedUpon = false;
     }
 
     // allow the gamepad inputs to control the imgui overlay
-    imguiOverlay->ProcessInputs(inputs);
+    imguiOverlay->ProcessInputs(inputs, vpadInputs);
 
     // ignore stick input when the help menu is open
-    if (isMenuOpen) {
+    if (isMenuOpen || imguiOverlay->ShouldBlockGameInput()/*this is used for the entity inspector*/) {
+        vpadInputs = {};
         leftStickSource.currentState = { 0.0f, 0.0f };
         rightStickSource.currentState = { 0.0f, 0.0f };
         leftJoystickDir = Direction::None;
@@ -863,27 +863,30 @@ void processJoystickInput(VPADButtons& oldXRStickHold, VPADButtons& newXRStickHo
     // movement/navigation stick
     vpadStatus.leftStick = { leftStickSource.currentState.x + vpadStatus.leftStick.x.getLE(), leftStickSource.currentState.y + vpadStatus.leftStick.y.getLE() };
 
-    if (leftStickSource.currentState.x <= -AXIS_THRESHOLD || (HAS_FLAG(oldXRStickHold, VPAD_STICK_L_EMULATION_LEFT) && leftStickSource.currentState.x <= -HOLD_THRESHOLD))
+    const float axisThreshold = GetSettings().axisThreshold;
+    const float holdThreshold = axisThreshold * 0.5f;
+    if (leftStickSource.currentState.x <= -axisThreshold || (HAS_FLAG(oldXRStickHold, VPAD_STICK_L_EMULATION_LEFT) && leftStickSource.currentState.x <= -holdThreshold))
         newXRStickHold |= VPAD_STICK_L_EMULATION_LEFT;
-    else if (leftStickSource.currentState.x >= AXIS_THRESHOLD || (HAS_FLAG(oldXRStickHold, VPAD_STICK_L_EMULATION_RIGHT) && leftStickSource.currentState.x >= HOLD_THRESHOLD))
+    else if (leftStickSource.currentState.x >= axisThreshold || (HAS_FLAG(oldXRStickHold, VPAD_STICK_L_EMULATION_RIGHT) && leftStickSource.currentState.x >= holdThreshold))
         newXRStickHold |= VPAD_STICK_L_EMULATION_RIGHT;
 
-    if (leftStickSource.currentState.y <= -AXIS_THRESHOLD || (HAS_FLAG(oldXRStickHold, VPAD_STICK_L_EMULATION_DOWN) && leftStickSource.currentState.y <= -HOLD_THRESHOLD))
+    if (leftStickSource.currentState.y <= -axisThreshold || (HAS_FLAG(oldXRStickHold, VPAD_STICK_L_EMULATION_DOWN) && leftStickSource.currentState.y <= -holdThreshold))
         newXRStickHold |= VPAD_STICK_L_EMULATION_DOWN;
-    else if (leftStickSource.currentState.y >= AXIS_THRESHOLD || (HAS_FLAG(oldXRStickHold, VPAD_STICK_L_EMULATION_UP) && leftStickSource.currentState.y >= HOLD_THRESHOLD))
+    else if (leftStickSource.currentState.y >= axisThreshold || (HAS_FLAG(oldXRStickHold, VPAD_STICK_L_EMULATION_UP) && leftStickSource.currentState.y >= holdThreshold))
         newXRStickHold |= VPAD_STICK_L_EMULATION_UP;
 
-    vpadStatus.rightStick = {rightStickSource.currentState.x + vpadStatus.rightStick.x.getLE(), rightStickSource.currentState.y + vpadStatus.rightStick.y.getLE()};
+    vpadStatus.rightStick = { rightStickSource.currentState.x + vpadStatus.rightStick.x.getLE(), rightStickSource.currentState.y + vpadStatus.rightStick.y.getLE() };
 
-    if (rightStickSource.currentState.x <= -AXIS_THRESHOLD || (HAS_FLAG(oldXRStickHold, VPAD_STICK_R_EMULATION_LEFT) && rightStickSource.currentState.x <= -HOLD_THRESHOLD))
+    if (rightStickSource.currentState.x <= -axisThreshold || (HAS_FLAG(oldXRStickHold, VPAD_STICK_R_EMULATION_LEFT) && rightStickSource.currentState.x <= -holdThreshold))
         newXRStickHold |= VPAD_STICK_R_EMULATION_LEFT;
-    else if (rightStickSource.currentState.x >= AXIS_THRESHOLD || (HAS_FLAG(oldXRStickHold, VPAD_STICK_R_EMULATION_RIGHT) && rightStickSource.currentState.x >= HOLD_THRESHOLD))
+    else if (rightStickSource.currentState.x >= axisThreshold || (HAS_FLAG(oldXRStickHold, VPAD_STICK_R_EMULATION_RIGHT) && rightStickSource.currentState.x >= holdThreshold))
         newXRStickHold |= VPAD_STICK_R_EMULATION_RIGHT;
 
-    if (rightStickSource.currentState.y <= -AXIS_THRESHOLD || (HAS_FLAG(oldXRStickHold, VPAD_STICK_R_EMULATION_DOWN) && rightStickSource.currentState.y <= -HOLD_THRESHOLD))
+    if (rightStickSource.currentState.y <= -axisThreshold || (HAS_FLAG(oldXRStickHold, VPAD_STICK_R_EMULATION_DOWN) && rightStickSource.currentState.y <= -holdThreshold))
         newXRStickHold |= VPAD_STICK_R_EMULATION_DOWN;
-    else if (rightStickSource.currentState.y >= AXIS_THRESHOLD || (HAS_FLAG(oldXRStickHold, VPAD_STICK_R_EMULATION_UP) && rightStickSource.currentState.y >= HOLD_THRESHOLD))
+    else if (rightStickSource.currentState.y >= axisThreshold || (HAS_FLAG(oldXRStickHold, VPAD_STICK_R_EMULATION_UP) && rightStickSource.currentState.y >= holdThreshold))
         newXRStickHold |= VPAD_STICK_R_EMULATION_UP;
+
 
     oldXRStickHold = newXRStickHold;
 }
@@ -958,10 +961,6 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
         startBtnWasDown = false;
     }
 
-    if (imguiOverlay->ShouldBlockGameInput()) {
-        vpadStatus = {};
-    }
-
     auto* rumbleMgr = VRManager::instance().XR->GetRumbleManager();
 
     // fetch input state
@@ -982,6 +981,15 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
     XrActionStateVector2f& leftStickSource = gameState.in_game ? inputs.inGame.move : inputs.inMenu.navigate;
     XrActionStateVector2f& rightStickSource = gameState.in_game ? inputs.inGame.camera : inputs.inMenu.scroll;
 
+    // Apply deadzone
+    float stickDeadzone = GetSettings().stickDeadzone;
+    auto applyDeadzone = [stickDeadzone](XrVector2f& v) {
+        if (std::abs(v.x) < stickDeadzone) v.x = 0.0f;
+        if (std::abs(v.y) < stickDeadzone) v.y = 0.0f;
+    };
+    applyDeadzone(leftStickSource.currentState);
+    applyDeadzone(rightStickSource.currentState);
+
     Direction leftJoystickDir = getJoystickDirection(leftStickSource.currentState);
     Direction rightJoystickDir = getJoystickDirection(rightStickSource.currentState);
 
@@ -992,7 +1000,7 @@ void CemuHooks::hook_InjectXRInput(PPCInterpreter_t* hCPU) {
     processInputPrevention(gameState, now, delay);
 
     auto& isMenuOpen = VRManager::instance().XR->m_isMenuOpen;
-    processModMenuInput(isMenuOpen, inputs, imguiOverlay, leftStickSource, rightStickSource, leftJoystickDir, rightJoystickDir);
+    processModMenuInput(isMenuOpen, inputs, vpadStatus, imguiOverlay, leftStickSource, rightStickSource, leftJoystickDir, rightJoystickDir);
 
     // Calculate hand gestures
     HandGestureState leftGesture = {};
