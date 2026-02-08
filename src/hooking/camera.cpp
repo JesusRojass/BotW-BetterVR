@@ -40,6 +40,7 @@ std::chrono::steady_clock::time_point crouch_state_change_time;
 
 uint32_t s_isLadderClimbing = 0;
 uint32_t s_isRiding = 0;
+uint32_t s_isRidingSandSeal = 0;
 
 void CemuHooks::hook_UpdateCameraForGameplay(PPCInterpreter_t* hCPU) {
     hCPU->instructionPointer = hCPU->sprNew.LR;
@@ -92,7 +93,7 @@ void CemuHooks::hook_UpdateCameraForGameplay(PPCInterpreter_t* hCPU) {
         auto gameState = VRManager::instance().XR->m_gameState.load();
         // Unreliable flag, need to investigate
         gameState.is_climbing = HAS_FLAG(moveBits, PlayerMoveBitFlags::IS_SWIMMING_OR_CLIMBING | PlayerMoveBitFlags::IS_CLIMBING_WALL) || s_isLadderClimbing == 2;
-        gameState.is_riding_mount = s_isRiding == 2 ? true : false;
+        gameState.is_riding_mount = (s_isRiding == 2 || s_isRidingSandSeal == 2) ? true : false;
         gameState.is_paragliding = HAS_FLAG(moveBits, PlayerMoveBitFlags::IS_GLIDER_ACTIVE);
         VRManager::instance().XR->m_gameState.store(gameState);
 
@@ -151,6 +152,9 @@ void CemuHooks::hook_UpdateCameraForGameplay(PPCInterpreter_t* hCPU) {
         }
         if (s_isRiding > 0) {
             s_isRiding--;
+        }
+        if (s_isRidingSandSeal > 0) {
+            s_isRidingSandSeal--;
         }
 
         s_wasCrouching = s_isCrouching;
@@ -1010,6 +1014,15 @@ void CemuHooks::hook_PlayerIsRiding(PPCInterpreter_t* hCPU) {
     bool isRiding = hCPU->gpr[3] == 1;
     if (isRiding && IsFirstPerson()) {
         s_isRiding = 2;
+    }
+}
+
+void CemuHooks::hook_PlayerIsRidingSandSeal(PPCInterpreter_t* hCPU) {
+    hCPU->instructionPointer = hCPU->sprNew.LR;
+
+    bool isRiding = hCPU->gpr[3] == 1;
+    if (isRiding && IsFirstPerson()) {
+        s_isRidingSandSeal = 2;
     }
 }
 
