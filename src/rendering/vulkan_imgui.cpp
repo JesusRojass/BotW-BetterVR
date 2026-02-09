@@ -317,8 +317,7 @@ RND_Renderer::ImGuiOverlay::ImGuiOverlay(VkCommandBuffer cb, VkExtent2D fbRes, V
     page1.emplace_back(createHelpImage((stbi_uc const*)controls, sizeof(controls)));
     page1.push_back(createHelpImage((stbi_uc const*)equip, sizeof(equip)));
     page1.push_back(createHelpImage((stbi_uc const*)swing, sizeof(swing)));
-    page1.push_back(createHelpImage((stbi_uc const*)BOTWcontrolScheme_Magnesis, sizeof(BOTWcontrolScheme_Magnesis)));
-    page1.push_back(createHelpImage((stbi_uc const*)BOTWcontrolScheme_Whistle, sizeof(BOTWcontrolScheme_Whistle)));
+    page1.push_back(createHelpImage((stbi_uc const*)whistle_and_magnesis, sizeof(whistle_and_magnesis)));
     m_helpImagePages.push_back(page1);
 
     VulkanUtils::DebugPipelineBarrier(cb);
@@ -856,16 +855,30 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
                     if (cameraMode == 1) {
                         float deadzone = settings.stickDeadzone;
                         DrawSettingRow("Thumbstick Deadzone", [&]() {
+                            ImGui::PushItemWidth(windowWidth.x * 0.35f);
                             if (ImGui::SliderFloat("##StickDeadzone", &deadzone, 0.0f, 0.5f, "%.2f")) {
                                 settings.stickDeadzone = deadzone;
+                                changed = true;
+                            }
+                            ImGui::PopItemWidth();
+                            ImGui::SameLine();
+                            if (ImGui::Button("Reset##Deadzone")) {
+                                settings.stickDeadzone = ModSettings::kDefaultStickDeadzone;
                                 changed = true;
                             }
                         });
 
                         float threshold = settings.axisThreshold;
                         DrawSettingRow("Stick Direction Threshold", [&]() {
+                            ImGui::PushItemWidth(windowWidth.x * 0.35f);
                             if (ImGui::SliderFloat("##AxisThreshold", &threshold, 0.1f, 0.9f, "%.2f")) {
                                 settings.axisThreshold = threshold;
+                                changed = true;
+                            }
+                            ImGui::PopItemWidth();
+                            ImGui::SameLine();
+                            if (ImGui::Button("Reset##Threshold")) {
+                                settings.axisThreshold = ModSettings::kDefaultAxisThreshold;
                                 changed = true;
                             }
                         });
