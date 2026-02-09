@@ -315,15 +315,11 @@ RND_Renderer::ImGuiOverlay::ImGuiOverlay(VkCommandBuffer cb, VkExtent2D fbRes, V
 
     std::vector<HelpImage> page1;
     page1.emplace_back(createHelpImage((stbi_uc const*)controls, sizeof(controls)));
+    page1.push_back(createHelpImage((stbi_uc const*)equip, sizeof(equip)));
+    page1.push_back(createHelpImage((stbi_uc const*)swing, sizeof(swing)));
+    page1.push_back(createHelpImage((stbi_uc const*)BOTWcontrolScheme_Magnesis, sizeof(BOTWcontrolScheme_Magnesis)));
+    page1.push_back(createHelpImage((stbi_uc const*)BOTWcontrolScheme_Whistle, sizeof(BOTWcontrolScheme_Whistle)));
     m_helpImagePages.push_back(page1);
-
-    std::vector<HelpImage> page2;
-    page2.push_back(createHelpImage((stbi_uc const*)equip, sizeof(equip)));
-    m_helpImagePages.push_back(page2);
-
-    std::vector<HelpImage> page3;
-    page3.push_back(createHelpImage((stbi_uc const*)swing, sizeof(swing)));
-    m_helpImagePages.push_back(page3);
 
     VulkanUtils::DebugPipelineBarrier(cb);
 
@@ -859,7 +855,7 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
                     ImGui::PopStyleColor();
                     if (cameraMode == 1) {
                         float deadzone = settings.stickDeadzone;
-                        DrawSettingRow("Stick Deadzone", [&]() {
+                        DrawSettingRow("Thumbstick Deadzone", [&]() {
                             if (ImGui::SliderFloat("##StickDeadzone", &deadzone, 0.0f, 0.5f, "%.2f")) {
                                 settings.stickDeadzone = deadzone;
                                 changed = true;
@@ -867,9 +863,17 @@ void RND_Renderer::ImGuiOverlay::DrawHelpMenu() {
                         });
 
                         float threshold = settings.axisThreshold;
-                        DrawSettingRow("Axis Threshold", [&]() {
+                        DrawSettingRow("Stick Direction Threshold", [&]() {
                             if (ImGui::SliderFloat("##AxisThreshold", &threshold, 0.1f, 0.9f, "%.2f")) {
                                 settings.axisThreshold = threshold;
+                                changed = true;
+                            }
+                        });
+
+                        DrawSettingRow("Reset Input Thresholds", [&]() {
+                            if (ImGui::Button("Reset##InputThresholds")) {
+                                settings.stickDeadzone = ModSettings::kDefaultStickDeadzone;
+                                settings.axisThreshold = ModSettings::kDefaultAxisThreshold;
                                 changed = true;
                             }
                         });
